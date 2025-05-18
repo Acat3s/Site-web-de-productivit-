@@ -1,0 +1,14 @@
+{
+  "name": "site-web-de-productivite",
+  "version": "1.0.0",
+  "description": "Site web de productivité avec une application To-Do.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.5.14"
+  }
+}

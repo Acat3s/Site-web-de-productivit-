@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do - ProductivityHub</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/todo.css">
+  <link rel="stylesheet" href="assets/css/statistics.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1 class="title">To-Do List</h1>
+      <div class="view-selector">
+        <button class="view-btn active" data-view="daily">Todo Quotidienne</button>
+        <button class="view-btn" data-view="weekly">Todo Hebdomadaire</button>
+        <button class="view-btn" data-view="punctual">Todo Ponctuel</button>
+        <button class="view-btn" data-view="all">Todo Générale</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Vue Todo Quotidienne -->
+      <section id="daily-view" class="view-section active">
+        <div class="view-header">
+          <div class="navigation">
+            <span id="prev-day" class="nav-arrow"><i class="fas fa-chevron-left"></i></span>
+            <span id="current-date" class="current-period">Todo : </span>
+            <span id="next-day" class="nav-arrow"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+        <div class="task-board">
+          <!-- Ligne d'ajout rapide -->
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" id="daily-quick-add" placeholder="Ajouter une tâche...">
+            <button class="quick-add-button" id="daily-quick-add-btn"><i class="fas fa-plus"></i></button>
+          </div>
+          <!-- Liste des tâches -->
+          <div class="task-list" id="daily-tasks">
+            <!-- Les tâches quotidiennes seront ajoutées ici -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Hebdomadaire -->
+      <section id="weekly-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <span id="prev-week" class="nav-arrow"><i class="fas fa-chevron-left"></i></span>
+            <span id="current-week" class="current-period">Todo : Semaine </span>
+            <span id="next-week" class="nav-arrow"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+        <div class="task-board">
+          <!-- Ligne d'ajout rapide -->
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" id="weekly-quick-add" placeholder="Ajouter une tâche...">
+            <button class="quick-add-button" id="weekly-quick-add-btn"><i class="fas fa-plus"></i></button>
+          </div>
+          <!-- Liste des tâches -->
+          <div class="task-list" id="weekly-tasks">
+            <!-- Les tâches hebdomadaires seront ajoutées ici -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Ponctuel -->
+      <section id="punctual-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <span id="prev-punctual" class="nav-arrow"><i class="fas fa-chevron-left"></i></span>
+            <span id="current-punctual" class="current-period">Todo Ponctuel</span>
+            <span id="next-punctual" class="nav-arrow"><i class="fas fa-chevron-right"></i></span>
+          </div>
+        </div>
+        <div class="task-board">
+          <!-- Ligne d'ajout rapide -->
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" id="punctual-quick-add" placeholder="Ajouter une tâche...">
+            <button class="quick-add-button" id="punctual-quick-add-btn"><i class="fas fa-plus"></i></button>
+          </div>
+          <!-- Liste des tâches -->
+          <div class="task-list" id="punctual-tasks">
+            <!-- Les tâches ponctuelles seront ajoutées ici -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Générale -->
+      <section id="all-view" class="view-section">
+        <div class="view-header">
+          <h2>Récapitulatif de toutes les tâches</h2>
+        </div>
+        <div class="task-board">
+          <!-- Ligne d'ajout rapide -->
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" id="all-quick-add" placeholder="Ajouter une tâche...">
+            <button class="quick-add-button" id="all-quick-add-btn"><i class="fas fa-plus"></i></button>
+          </div>
+          <!-- Liste des tâches -->
+          <div class="task-list" id="all-tasks">
+            <!-- Toutes les tâches seront ajoutées ici -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal pour éditer une tâche -->
+    <div id="edit-task-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modal-title">Modifier la tâche</h2>
+        <form id="edit-task-form">
+          <div class="form-group">
+            <label for="edit-task-title">Titre</label>
+            <input type="text" id="edit-task-title" placeholder="Titre de la tâche" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-task-time">Heure</label>
+            <input type="time" id="edit-task-time">
+            <button type="button" class="clear-field-btn" data-field="edit-task-time">Effacer</button>
+          </div>
+          <div class="form-group">
+            <label for="edit-task-location">Lieu</label>
+            <input type="text" id="edit-task-location" placeholder="ex: à la maison">
+            <button type="button" class="clear-field-btn" data-field="edit-task-location">Effacer</button>
+          </div>
+          <div class="form-group">
+            <label>Étiquettes</label>
+            <div class="tags-container">
+              <div class="tag-group">
+                <span>Durée:</span>
+                <label><input type="radio" name="duration-tag" value="Court"> Court</label>
+                <label><input type="radio" name="duration-tag" value="Long"> Long</label>
+                <button type="button" class="clear-field-btn" data-field="duration-tag">Aucune</button>
+              </div>
+              <div class="tag-group">
+                <span>Difficulté:</span>
+                <label><input type="radio" name="difficulty-tag" value="Facile"> Facile</label>
+                <label><input type="radio" name="difficulty-tag" value="Difficile"> Difficile</label>
+                <button type="button" class="clear-field-btn" data-field="difficulty-tag">Aucune</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Répétition</label>
+            <div class="repetition-container">
+              <p class="repetition-help">La répétition permet de suivre la progression d'une tâche qui doit être effectuée plusieurs fois.</p>
+              <div class="repetition-inputs">
+                <div class="repetition-input-group">
+                  <label for="edit-task-repetition-total">Nombre total</label>
+                  <input type="number" id="edit-task-repetition-total" min="0" max="100" placeholder="Ex: 3 (total à faire)">
+                  <p class="repetition-help">Nombre total de fois que la tâche doit être effectuée</p>
+                </div>
+                <div class="repetition-input-group">
+                  <p class="repetition-help">Le compteur s'incrémente automatiquement quand la tâche est marquée comme terminée</p>
+                </div>
+              </div>
+              <button type="button" class="clear-field-btn" data-field="edit-task-repetition-total">Effacer</button>
+            </div>
+          </div>
+          <!-- Timer (uniquement pour Todo Ponctuel) -->
+          <div class="form-group" id="timer-group">
+            <label for="edit-task-timer">Timer (jours)</label>
+            <input type="number" id="edit-task-timer" min="0" placeholder="À faire d'ici X jours">
+            <p class="repetition-help">Définit un délai pour recevoir une notification lorsque la tâche doit être effectuée.</p>
+            <button type="button" class="clear-field-btn" data-field="edit-task-timer">Effacer</button>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="save-task">Enregistrer</button>
+            <button type="button" id="cancel-task">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Section statistiques -->
+    <section id="statistics" class="statistics-section">
+      <h2>Statistiques</h2>
+      
+      <!-- Statistiques par catégorie -->
+      <div class="category-stats-container">
+        <div class="category-stats-card">
+          <h3>Todo Quotidienne</h3>
+          <div id="daily-completion-rate" class="completion-rate">0%</div>
+        </div>
+        <div class="category-stats-card">
+          <h3>Todo Hebdomadaire</h3>
+          <div id="weekly-completion-rate" class="completion-rate">0%</div>
+        </div>
+        <div class="category-stats-card">
+          <h3>Todo Ponctuel</h3>
+          <div id="punctual-completion-rate" class="completion-rate">0%</div>
+        </div>
+      </div>
+      
+      <!-- Statistiques générales -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <h3>Tâches accomplies</h3>
+          <div id="completion-rate">0%</div>
+        </div>
+        <div class="stat-card">
+          <h3>Tâches reportées</h3>
+          <div id="postponed-tasks">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Temps moyen</h3>
+          <div id="average-time">0 min</div>
+        </div>
+      </div>
+      
+      <!-- Sélecteur de type de graphique -->
+      <div class="chart-type-selector-container">
+        <label for="chart-type-selector">Type de graphique:</label>
+        <select id="chart-type-selector">
+          <option value="bar">Barres</option>
+          <option value="line">Ligne</option>
+          <option value="pie">Camembert</option>
+          <option value="radar">Radar</option>
+        </select>
+      </div>
+      
+      <!-- Graphiques -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <canvas id="tasks-chart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="category-completion-chart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="difficulty-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <a href="#" class="back-button">Retour à l'accueil</a>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script src="assets/js/todo.js"></script>
+  <script src="assets/js/statistics.js"></script>
+</body>
+</html>
