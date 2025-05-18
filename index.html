@@ -5,81 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProductivityHub - Menu Principal</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <style>
-    .app-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-    
-    .app-card {
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      text-align: center;
-    }
-    
-    .app-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .app-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-      color: #4a6fa5;
-    }
-    
-    .app-title {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #333;
-    }
-    
-    .app-description {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 15px;
-    }
-    
-    .app-link {
-      display: inline-block;
-      padding: 8px 16px;
-      background-color: #4a6fa5;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-    
-    .app-link:hover {
-      background-color: #3d5a80;
-    }
-    
-    header {
-      text-align: center;
-      padding: 30px 0;
-    }
-    
-    .main-title {
-      font-size: 36px;
-      color: #333;
-      margin-bottom: 10px;
-    }
-    
-    .subtitle {
-      font-size: 18px;
-      color: #666;
-    }
-  </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <div class="app-container">
     <header>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <i id="theme-icon" class="fas fa-moon"></i>
+      </button>
       <h1 class="main-title">ProductivityHub</h1>
       <p class="subtitle">Ensemble d'applications pour améliorer votre productivité</p>
     </header>
@@ -88,40 +21,37 @@
       <div class="app-grid">
         <!-- Application Todo -->
         <div class="app-card">
-          <div class="app-icon">
-            <i class="fas fa-check-circle"></i>
+          <div class="app-icon-container">
+            <i class="app-icon fas fa-check-circle"></i>
           </div>
           <h2 class="app-title">To-Do List</h2>
-          <p class="app-description">Gérez vos tâches quotidiennes, hebdomadaires et ponctuelles.</p>
           <a href="apps/Todo/todo.html" class="app-link">Accéder</a>
         </div>
         
         <!-- Application Stockage Vidéo -->
         <div class="app-card">
-          <div class="app-icon">
-            <i class="fas fa-film"></i>
+          <div class="app-icon-container">
+            <i class="app-icon fas fa-film"></i>
           </div>
           <h2 class="app-title">Stockage Vidéo</h2>
-          <p class="app-description">Organisez et gérez votre collection de vidéos.</p>
           <a href="apps/stockage-video/index.html" class="app-link">Accéder</a>
         </div>
         
-        <!-- Placeholder pour d'autres applications -->
+        <!-- Planificateur -->
         <div class="app-card">
-          <div class="app-icon">
-            <i class="fas fa-calendar-alt"></i>
+          <div class="app-icon-container">
+            <i class="app-icon fas fa-calendar-alt"></i>
           </div>
           <h2 class="app-title">Planificateur</h2>
-          <p class="app-description">Planifiez votre journée et vos rendez-vous.</p>
           <a href="#" class="app-link disabled">Bientôt disponible</a>
         </div>
         
+        <!-- Notes -->
         <div class="app-card">
-          <div class="app-icon">
-            <i class="fas fa-sticky-note"></i>
+          <div class="app-icon-container">
+            <i class="app-icon fas fa-sticky-note"></i>
           </div>
           <h2 class="app-title">Notes</h2>
-          <p class="app-description">Prenez des notes et organisez vos idées.</p>
           <a href="#" class="app-link disabled">Bientôt disponible</a>
         </div>
       </div>
@@ -131,5 +61,7 @@
       <p>&copy; 2024 ProductivityHub - Tous droits réservés</p>
     </footer>
   </div>
+  
+  <script src="assets/js/app.js"></script>
 </body>
-</html> 
+</html>
