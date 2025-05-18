@@ -9,57 +9,218 @@ document.addEventListener('DOMContentLoaded', () => {
   let tasks = {
     daily: [],
     weekly: [],
-    punctual: []
+    punctual: [],
+    general: []
   };
-
-  // ===== SÉLECTEURS DOM =====
-  // Sélecteurs de vue
+  
+  // Sélection des éléments DOM
   const viewButtons = document.querySelectorAll('.view-btn');
   const viewSections = document.querySelectorAll('.view-section');
-  
-  // Navigation
-  const prevDayBtn = document.getElementById('prev-day');
-  const nextDayBtn = document.getElementById('next-day');
-  const currentDateDisplay = document.getElementById('current-date');
-  
-  const prevWeekBtn = document.getElementById('prev-week');
-  const nextWeekBtn = document.getElementById('next-week');
-  const currentWeekDisplay = document.getElementById('current-week');
-  
-  const prevPunctualBtn = document.getElementById('prev-punctual');
-  const nextPunctualBtn = document.getElementById('next-punctual');
-  const currentPunctualDisplay = document.getElementById('current-punctual');
-  
-  // Lignes d'ajout rapide
-  const dailyQuickAddInput = document.getElementById('daily-quick-add');
-  const dailyQuickAddBtn = document.getElementById('daily-quick-add-btn');
-  
-  const weeklyQuickAddInput = document.getElementById('weekly-quick-add');
-  const weeklyQuickAddBtn = document.getElementById('weekly-quick-add-btn');
-  
-  const punctualQuickAddInput = document.getElementById('punctual-quick-add');
-  const punctualQuickAddBtn = document.getElementById('punctual-quick-add-btn');
-  
-  const allQuickAddInput = document.getElementById('all-quick-add');
-  const allQuickAddBtn = document.getElementById('all-quick-add-btn');
-  
-  // Modal d'édition
   const editTaskModal = document.getElementById('edit-task-modal');
-  const modalTitle = document.getElementById('modal-title');
   const closeModalBtn = document.querySelector('.close-modal');
   const editTaskForm = document.getElementById('edit-task-form');
-  const saveTaskBtn = document.getElementById('save-task');
   const cancelTaskBtn = document.getElementById('cancel-task');
-  const timerGroup = document.getElementById('timer-group');
-  
-  // Boutons d'effacement des champs
   const clearFieldBtns = document.querySelectorAll('.clear-field-btn');
+  const themeToggle = document.getElementById('theme-toggle');
+
+  // ===== INITIALISATION =====
+  // Charger les tâches depuis le localStorage
+  loadTasksFromLocalStorage();
   
-  // Listes de tâches
-  const dailyTasksList = document.getElementById('daily-tasks');
-  const weeklyTasksList = document.getElementById('weekly-tasks');
-  const punctualTasksList = document.getElementById('punctual-tasks');
-  const allTasksList = document.getElementById('all-tasks');
+  // Initialiser les sélecteurs de vue
+  initViewSelectors();
+  
+  // Initialiser les lignes d'ajout rapide
+  initQuickAddInputs();
+  
+  // Initialiser le modal d'édition
+  initEditModal();
+  
+  // Initialiser la réinitialisation des tâches quotidiennes à minuit
+  resetDailyTasksAtMidnight();
+  
+  // Initialiser le thème
+  initTheme();
+  
+  // Mettre à jour toutes les vues
+  updateAllViews();
+
+  // ===== FONCTIONS D'INITIALISATION =====
+  
+  // Initialiser le thème
+  function initTheme() {
+    // Vérifier si un thème est sauvegardé dans localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Mettre à jour l'icône du bouton
+    updateThemeIcon(savedTheme);
+    
+    // Ajouter l'écouteur d'événement pour le bouton de thème
+    if (themeToggle) {
+      themeToggle.addEventListener('click', toggleTheme);
+    }
+  }
+  
+  // Mettre à jour l'icône du thème
+  function updateThemeIcon(theme) {
+    if (!themeToggle) return;
+    
+    const themeIcon = themeToggle.querySelector('i');
+    if (!themeIcon) return;
+    
+    if (theme === 'dark') {
+      themeIcon.className = 'fas fa-sun';
+    } else {
+      themeIcon.className = 'fas fa-moon';
+    }
+  }
+  
+  // Basculer entre le mode clair et sombre
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    // Animation de transition
+    document.body.style.opacity = '0.8';
+    
+    setTimeout(() => {
+      document.documentElement.setAttribute('data-theme', newTheme);
+      
+      // Mettre à jour l'icône du bouton
+      updateThemeIcon(newTheme);
+      
+      // Sauvegarder la préférence dans localStorage
+      localStorage.setItem('theme', newTheme);
+      
+      document.body.style.opacity = '1';
+    }, 200);
+  }
+  
+  // Initialiser les sélecteurs de vue
+  function initViewSelectors() {
+    viewButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const viewName = button.dataset.view;
+        switchView(viewName);
+      });
+    });
+    
+    // Initialiser la navigation
+    if (document.querySelector('.left-arrow')) {
+      document.querySelector('.left-arrow').addEventListener('click', () => {
+        const activeView = document.querySelector('.view-btn.active').dataset.view;
+        
+        if (activeView === 'daily') {
+          // Reculer d'un jour
+          currentDailyDate.setDate(currentDailyDate.getDate() - 1);
+          updateDailyDisplay();
+        } else if (activeView === 'weekly') {
+          // Reculer d'une semaine
+          currentWeeklyDate.setDate(currentWeeklyDate.getDate() - 7);
+          updateWeeklyDisplay();
+        }
+      });
+    }
+    
+    if (document.querySelector('.right-arrow')) {
+      document.querySelector('.right-arrow').addEventListener('click', () => {
+        const activeView = document.querySelector('.view-btn.active').dataset.view;
+        
+        if (activeView === 'daily') {
+          // Avancer d'un jour
+          currentDailyDate.setDate(currentDailyDate.getDate() + 1);
+          updateDailyDisplay();
+        } else if (activeView === 'weekly') {
+          // Avancer d'une semaine
+          currentWeeklyDate.setDate(currentWeeklyDate.getDate() + 7);
+          updateWeeklyDisplay();
+        }
+      });
+    }
+  }
+  
+  // Initialiser les lignes d'ajout rapide
+  function initQuickAddInputs() {
+    // Sélectionner toutes les entrées d'ajout rapide
+    const quickAddInputs = document.querySelectorAll('.quick-add-input');
+    const quickAddButtons = document.querySelectorAll('.quick-add-button');
+    
+    // Ajouter les écouteurs d'événements pour chaque entrée
+    quickAddInputs.forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          const title = input.value;
+          const category = input.dataset.view;
+          quickAddTask(title, category);
+          input.value = '';
+        }
+      });
+    });
+    
+    // Ajouter les écouteurs d'événements pour chaque bouton
+    quickAddButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const input = button.previousElementSibling;
+        const title = input.value;
+        const category = input.dataset.view;
+        quickAddTask(title, category);
+        input.value = '';
+      });
+    });
+  }
+  
+  // Initialiser le modal d'édition
+  function initEditModal() {
+    // Fermer le modal
+    closeModalBtn.addEventListener('click', closeEditTaskModal);
+    
+    // Fermer le modal en cliquant en dehors
+    window.addEventListener('click', (e) => {
+      if (e.target === editTaskModal) {
+        closeEditTaskModal();
+      }
+    });
+    
+    // Annuler l'édition
+    cancelTaskBtn.addEventListener('click', closeEditTaskModal);
+    
+    // Enregistrer les modifications
+    editTaskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveEditedTask();
+    });
+    
+    // Effacer les champs optionnels
+    clearFieldBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fieldId = btn.dataset.field;
+        document.getElementById(fieldId).value = '';
+      });
+    });
+    
+    // Sélection des étiquettes
+    const tagBtns = document.querySelectorAll('.tag-btn');
+    tagBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag;
+        const value = btn.dataset.value;
+        
+        // Basculer la classe active
+        const isActive = btn.classList.contains('active');
+        
+        // Désactiver tous les boutons du même groupe
+        document.querySelectorAll(`.tag-btn[data-tag="${tag}"]`).forEach(b => {
+          b.classList.remove('active');
+        });
+        
+        // Activer le bouton cliqué (sauf si on clique sur un bouton déjà actif)
+        if (!isActive) {
+          btn.classList.add('active');
+        }
+      });
+    });
+  }
 
   // ===== FONCTIONS DE NAVIGATION =====
   
@@ -86,15 +247,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updateWeeklyDisplay();
     } else if (viewName === 'punctual') {
       updatePunctualDisplay();
-    } else if (viewName === 'all') {
-      updateAllTasksView();
+    } else if (viewName === 'general') {
+      updateGeneralView();
     }
   }
   
   // Mise à jour de l'affichage quotidien
   function updateDailyDisplay() {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    currentDateDisplay.textContent = `Todo : ${currentDailyDate.toLocaleDateString('fr-FR', options)}`;
+    const currentDateDisplay = document.getElementById('current-date');
+    if (currentDateDisplay) {
+      currentDateDisplay.textContent = currentDailyDate.toLocaleDateString('fr-FR', options);
+    }
     
     // Gestion de la visibilité des flèches de navigation
     const today = new Date();
@@ -103,10 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
     displayedDate.setHours(0, 0, 0, 0);
     
     // La flèche droite n'est visible que si on consulte une date antérieure à aujourd'hui
-    if (displayedDate.getTime() < today.getTime()) {
-      nextDayBtn.style.display = 'flex';
-    } else {
-      nextDayBtn.style.display = 'none';
+    const rightArrow = document.querySelector('.right-arrow');
+    if (rightArrow) {
+      if (displayedDate.getTime() < today.getTime()) {
+        rightArrow.style.display = 'flex';
+      } else {
+        rightArrow.style.display = 'none';
+      }
     }
     
     // Charger les tâches du jour
@@ -122,7 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const startOptions = { day: 'numeric', month: 'short' };
     const endOptions = { day: 'numeric', month: 'short', year: 'numeric' };
     
-    currentWeekDisplay.textContent = `Todo : Semaine du ${startOfWeek.toLocaleDateString('fr-FR', startOptions)} au ${endOfWeek.toLocaleDateString('fr-FR', endOptions)}`;
+    const currentWeekDisplay = document.getElementById('current-week');
+    if (currentWeekDisplay) {
+      currentWeekDisplay.textContent = `${startOfWeek.toLocaleDateString('fr-FR', startOptions)} au ${endOfWeek.toLocaleDateString('fr-FR', endOptions)}`;
+    }
     
     // Gestion de la visibilité des flèches de navigation
     const today = new Date();
@@ -130,10 +300,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayedWeekStart = getStartOfWeek(currentWeeklyDate);
     
     // La flèche droite n'est visible que si on consulte une semaine antérieure à la semaine actuelle
-    if (displayedWeekStart.getTime() < currentWeekStart.getTime()) {
-      nextWeekBtn.style.display = 'flex';
-    } else {
-      nextWeekBtn.style.display = 'none';
+    const rightArrow = document.querySelector('.right-arrow');
+    if (rightArrow) {
+      if (displayedWeekStart.getTime() < currentWeekStart.getTime()) {
+        rightArrow.style.display = 'flex';
+      } else {
+        rightArrow.style.display = 'none';
+      }
     }
     
     // Charger les tâches de la semaine
@@ -142,28 +315,28 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Mise à jour de l'affichage ponctuel
   function updatePunctualDisplay() {
-    // Pour les tâches ponctuelles, pas de date spécifique
-    currentPunctualDisplay.textContent = 'Todo Ponctuel';
-    
-    // Masquer les flèches de navigation pour les tâches ponctuelles
-    prevPunctualBtn.style.display = 'none';
-    nextPunctualBtn.style.display = 'none';
-    
     // Charger les tâches ponctuelles
     loadPunctualTasks();
   }
   
   // Mise à jour de la vue générale
-  function updateAllTasksView() {
+  function updateGeneralView() {
     // Charger toutes les tâches
-    loadAllTasks();
+    loadGeneralTasks();
   }
   
   // Obtenir le premier jour de la semaine (lundi)
   function getStartOfWeek(date) {
     const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajuster pour que la semaine commence le lundi
-    return new Date(date.setDate(diff));
+    return new Date(new Date(date).setDate(diff));
+  }
+  
+  // Vérifier si deux dates sont le même jour
+  function isSameDay(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
   }
 
   // ===== GESTION DES TÂCHES =====
@@ -171,6 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Charger les tâches quotidiennes
   function loadDailyTasks() {
     // Vider la liste
+    const dailyTasksList = document.getElementById('daily-tasks');
+    if (!dailyTasksList) return;
+    
     dailyTasksList.innerHTML = '';
     
     // Filtrer les tâches du jour courant
@@ -199,6 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Charger les tâches hebdomadaires
   function loadWeeklyTasks() {
     // Vider la liste
+    const weeklyTasksList = document.getElementById('weekly-tasks');
+    if (!weeklyTasksList) return;
+    
     weeklyTasksList.innerHTML = '';
     
     // Filtrer les tâches de la semaine courante
@@ -231,6 +410,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Charger les tâches ponctuelles
   function loadPunctualTasks() {
     // Vider la liste
+    const punctualTasksList = document.getElementById('punctual-tasks');
+    if (!punctualTasksList) return;
+    
     punctualTasksList.innerHTML = '';
     
     // Trier les tâches : non terminées d'abord, puis terminées
@@ -250,10 +432,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initSortable(punctualTasksList, 'punctual');
   }
   
-  // Charger toutes les tâches
-  function loadAllTasks() {
+  // Charger toutes les tâches (vue générale)
+  function loadGeneralTasks() {
     // Vider la liste
-    allTasksList.innerHTML = '';
+    const generalTasksList = document.getElementById('general-tasks');
+    if (!generalTasksList) return;
+    
+    generalTasksList.innerHTML = '';
     
     // Combiner toutes les tâches
     const allTasks = [
@@ -272,16 +457,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ajouter les tâches à la liste
     allTasks.forEach(task => {
       const taskElement = createTaskElement(task, task.category);
-      allTasksList.appendChild(taskElement);
+      generalTasksList.appendChild(taskElement);
     });
     
     // Initialiser le drag and drop
-    initSortable(allTasksList, 'all');
+    initSortable(generalTasksList, 'general');
   }
   
   // Initialiser le drag and drop
   function initSortable(container, category) {
-    if (container) {
+    if (container && typeof Sortable !== 'undefined') {
       new Sortable(container, {
         animation: 150,
         ghostClass: 'sortable-ghost',
@@ -296,12 +481,14 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Mettre à jour l'ordre des tâches après drag and drop
   function updateTasksOrder(category) {
-    if (category === 'all') {
+    if (category === 'general') {
       // Pour la vue générale, on ne modifie pas l'ordre des tâches
       return;
     }
     
     const container = document.getElementById(`${category}-tasks`);
+    if (!container) return;
+    
     const taskElements = container.querySelectorAll('.task-item');
     
     // Créer un nouvel ordre pour les tâches
@@ -367,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bouton de suppression
     const deleteBtn = document.createElement('button');
     deleteBtn.classList.add('task-action-btn', 'delete');
-    deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
     deleteBtn.title = 'Supprimer';
     deleteBtn.addEventListener('click', () => deleteTask(task.id, category));
     taskActions.appendChild(deleteBtn);
@@ -375,327 +562,232 @@ document.addEventListener('DOMContentLoaded', () => {
     taskHeader.appendChild(taskActions);
     taskElement.appendChild(taskHeader);
     
-    // Détails de la tâche (si présents)
-    if (task.time || task.location || task.tags || task.repetition || task.timer) {
-      const taskDetails = document.createElement('div');
-      taskDetails.classList.add('task-details');
-      
-      // Heure
-      if (task.time) {
-        const timeDetail = document.createElement('div');
-        timeDetail.classList.add('task-detail');
-        timeDetail.innerHTML = `<i class="fas fa-clock"></i> ${task.time}`;
-        taskDetails.appendChild(timeDetail);
-      }
-      
-      // Lieu
-      if (task.location) {
-        const locationDetail = document.createElement('div');
-        locationDetail.classList.add('task-detail');
-        locationDetail.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${task.location}`;
-        taskDetails.appendChild(locationDetail);
-      }
-      
-      // Étiquettes
-      if (task.tags && (task.tags.duration || task.tags.difficulty)) {
-        const tagsDetail = document.createElement('div');
-        tagsDetail.classList.add('task-detail');
-        tagsDetail.innerHTML = `<i class="fas fa-tags"></i> ${task.tags.duration || ''} ${task.tags.difficulty ? (task.tags.duration ? '• ' : '') + task.tags.difficulty : ''}`;
-        taskDetails.appendChild(tagsDetail);
-      }
-      
-      // Répétition
-      if (task.repetition && task.repetition.total > 0) {
-        const repetitionDetail = document.createElement('div');
-        repetitionDetail.classList.add('task-detail');
-        repetitionDetail.innerHTML = `<i class="fas fa-redo"></i> ${task.repetition.done}/${task.repetition.total}`;
-        taskDetails.appendChild(repetitionDetail);
-      }
-      
-      // Timer (uniquement pour les tâches ponctuelles)
-      if (category === 'punctual' && task.timer > 0) {
-        const timerDetail = document.createElement('div');
-        timerDetail.classList.add('task-detail');
-        timerDetail.innerHTML = `<i class="fas fa-hourglass-half"></i> À faire dans ${task.timer} jours`;
-        taskDetails.appendChild(timerDetail);
-      }
-      
-      taskElement.appendChild(taskDetails);
+    // Détails de la tâche
+    const taskDetails = document.createElement('div');
+    taskDetails.classList.add('task-details');
+    
+    // Heure
+    if (task.time) {
+      const timeDetail = document.createElement('div');
+      timeDetail.classList.add('task-detail');
+      timeDetail.innerHTML = `<i class="fas fa-clock"></i> ${task.time}`;
+      taskDetails.appendChild(timeDetail);
     }
+    
+    // Lieu
+    if (task.location) {
+      const locationDetail = document.createElement('div');
+      locationDetail.classList.add('task-detail');
+      locationDetail.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${task.location}`;
+      taskDetails.appendChild(locationDetail);
+    }
+    
+    // Étiquettes
+    if (task.tags) {
+      // Durée
+      if (task.tags.duration) {
+        const durationDetail = document.createElement('div');
+        durationDetail.classList.add('task-detail');
+        durationDetail.innerHTML = `<i class="fas fa-hourglass-half"></i> ${task.tags.duration}`;
+        taskDetails.appendChild(durationDetail);
+      }
+      
+      // Difficulté
+      if (task.tags.difficulty) {
+        const difficultyDetail = document.createElement('div');
+        difficultyDetail.classList.add('task-detail');
+        difficultyDetail.innerHTML = `<i class="fas fa-signal"></i> ${task.tags.difficulty}`;
+        taskDetails.appendChild(difficultyDetail);
+      }
+    }
+    
+    // Répétition
+    if (task.repetition && task.repetition.total > 0) {
+      const repetitionDetail = document.createElement('div');
+      repetitionDetail.classList.add('task-detail');
+      repetitionDetail.innerHTML = `<i class="fas fa-redo"></i> ${task.repetition.done}/${task.repetition.total}`;
+      taskDetails.appendChild(repetitionDetail);
+    }
+    
+    // Timer
+    if (task.timer && task.timer > 0) {
+      const timerDetail = document.createElement('div');
+      timerDetail.classList.add('task-detail');
+      timerDetail.innerHTML = `<i class="fas fa-stopwatch"></i> ${task.timer} jours`;
+      taskDetails.appendChild(timerDetail);
+    }
+    
+    taskElement.appendChild(taskDetails);
     
     return taskElement;
   }
   
-  // Vérifier si une tâche est réellement complétée (en tenant compte de la répétition)
+  // Vérifier si une tâche est réellement complétée
   function isTaskReallyCompleted(task) {
-    // Si la tâche a une répétition
     if (task.repetition && task.repetition.total > 0) {
-      // Elle est complétée uniquement si done >= total
-      return task.completed && task.repetition.done >= task.repetition.total;
+      return task.repetition.done >= task.repetition.total;
+    }
+    return task.completed;
+  }
+  
+  // Basculer l'état de complétion d'une tâche
+  function toggleTaskCompletion(taskId, category) {
+    const task = tasks[category].find(t => t.id === taskId);
+    if (!task) return;
+    
+    if (task.repetition && task.repetition.total > 0) {
+      // Pour les tâches avec répétition, incrémenter le compteur
+      if (task.repetition.done < task.repetition.total) {
+        task.repetition.done++;
+        
+        // Si on atteint le total, marquer comme complétée
+        if (task.repetition.done >= task.repetition.total) {
+          task.completed = true;
+        }
+      } else {
+        // Si déjà au max, réinitialiser
+        task.repetition.done = 0;
+        task.completed = false;
+      }
+    } else {
+      // Pour les tâches normales, basculer l'état
+      task.completed = !task.completed;
     }
     
-    // Sinon, on utilise simplement le flag completed
-    return task.completed;
+    // Sauvegarder et mettre à jour l'affichage
+    saveTasksToLocalStorage();
+    updateAllViews();
+  }
+  
+  // Ouvrir le modal d'édition de tâche
+  function openEditTaskModal(taskId, category) {
+    const task = tasks[category].find(t => t.id === taskId);
+    if (!task) return;
+    
+    // Stocker l'ID de la tâche en cours d'édition
+    editingTaskId = { id: taskId, category };
+    
+    // Remplir le formulaire avec les données de la tâche
+    document.getElementById('task-title').value = task.title;
+    document.getElementById('task-time').value = task.time || '';
+    document.getElementById('task-location').value = task.location || '';
+    
+    // Réinitialiser les étiquettes
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Sélectionner les étiquettes actives
+    if (task.tags) {
+      if (task.tags.duration) {
+        document.querySelector(`.tag-btn[data-tag="duration"][data-value="${task.tags.duration}"]`)?.classList.add('active');
+      }
+      
+      if (task.tags.difficulty) {
+        document.querySelector(`.tag-btn[data-tag="difficulty"][data-value="${task.tags.difficulty}"]`)?.classList.add('active');
+      }
+    }
+    
+    // Répétition
+    document.getElementById('repetition-total').value = task.repetition ? task.repetition.total : 0;
+    
+    // Timer
+    document.getElementById('task-timer').value = task.timer || 0;
+    
+    // Afficher le modal
+    editTaskModal.style.display = 'block';
+  }
+  
+  // Fermer le modal d'édition de tâche
+  function closeEditTaskModal() {
+    editTaskModal.style.display = 'none';
+    editingTaskId = null;
+  }
+  
+  // Sauvegarder les modifications d'une tâche
+  function saveEditedTask() {
+    if (!editingTaskId) return;
+    
+    const { id, category } = editingTaskId;
+    const task = tasks[category].find(t => t.id === id);
+    if (!task) return;
+    
+    // Récupérer les valeurs du formulaire
+    const title = document.getElementById('task-title').value;
+    const time = document.getElementById('task-time').value;
+    const location = document.getElementById('task-location').value;
+    
+    // Récupérer les étiquettes
+    const durationBtn = document.querySelector('.tag-btn[data-tag="duration"].active');
+    const difficultyBtn = document.querySelector('.tag-btn[data-tag="difficulty"].active');
+    
+    const duration = durationBtn ? durationBtn.dataset.value : null;
+    const difficulty = difficultyBtn ? difficultyBtn.dataset.value : null;
+    
+    // Récupérer la répétition
+    const repetitionTotal = parseInt(document.getElementById('repetition-total').value) || 0;
+    
+    // Récupérer le timer
+    const timer = parseInt(document.getElementById('task-timer').value) || 0;
+    
+    // Mettre à jour la tâche
+    task.title = title;
+    task.time = time;
+    task.location = location;
+    task.tags = {
+      duration,
+      difficulty
+    };
+    task.repetition = {
+      total: repetitionTotal,
+      done: task.repetition ? Math.min(task.repetition.done, repetitionTotal) : 0
+    };
+    task.timer = timer;
+    
+    // Sauvegarder et mettre à jour l'affichage
+    saveTasksToLocalStorage();
+    updateAllViews();
+    
+    // Fermer le modal
+    closeEditTaskModal();
+  }
+  
+  // Supprimer une tâche
+  function deleteTask(taskId, category) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
+    
+    // Filtrer la tâche
+    tasks[category] = tasks[category].filter(t => t.id !== taskId);
+    
+    // Sauvegarder et mettre à jour l'affichage
+    saveTasksToLocalStorage();
+    updateAllViews();
   }
   
   // Ajouter une tâche rapidement
   function quickAddTask(title, category) {
     if (!title.trim()) return;
     
-    // Créer l'objet tâche avec uniquement le titre
-    const task = {
+    // Créer une nouvelle tâche
+    const newTask = {
       id: generateId(),
-      title: title.trim(),
+      title,
       date: new Date().toISOString(),
       completed: false,
+      tags: {},
       repetition: {
         total: 0,
         done: 0
-      }
+      },
+      timer: 0
     };
     
-    // Ajouter la tâche à la catégorie appropriée
-    tasks[category].push(task);
+    // Ajouter la tâche à la catégorie correspondante
+    tasks[category].push(newTask);
     
-    // Sauvegarder dans le localStorage
+    // Sauvegarder et mettre à jour l'affichage
     saveTasksToLocalStorage();
-    
-    // Mettre à jour l'affichage
     updateAllViews();
-    
-    // Vider le champ d'entrée
-    document.getElementById(`${category}-quick-add`).value = '';
-  }
-  
-  // Ouvrir le modal d'édition de tâche
-  function openEditTaskModal(taskId, category) {
-    editingTaskId = taskId;
-    
-    // Trouver la tâche
-    const taskToEdit = tasks[category].find(task => task.id === taskId);
-    
-    if (taskToEdit) {
-      // Définir le titre du modal
-      modalTitle.textContent = 'Modifier la tâche';
-      
-      // Remplir le formulaire avec les données de la tâche
-      document.getElementById('edit-task-title').value = taskToEdit.title || '';
-      document.getElementById('edit-task-time').value = taskToEdit.time || '';
-      document.getElementById('edit-task-location').value = taskToEdit.location || '';
-      
-      // Étiquettes
-      if (taskToEdit.tags) {
-        if (taskToEdit.tags.duration) {
-          document.querySelector(`input[name="duration-tag"][value="${taskToEdit.tags.duration}"]`).checked = true;
-        } else {
-          document.querySelectorAll('input[name="duration-tag"]').forEach(input => input.checked = false);
-        }
-        
-        if (taskToEdit.tags.difficulty) {
-          document.querySelector(`input[name="difficulty-tag"][value="${taskToEdit.tags.difficulty}"]`).checked = true;
-        } else {
-          document.querySelectorAll('input[name="difficulty-tag"]').forEach(input => input.checked = false);
-        }
-      }
-      
-      // Répétition
-      document.getElementById('edit-task-repetition-total').value = taskToEdit.repetition?.total || '';
-      
-      // Timer (uniquement pour les tâches ponctuelles)
-      const timerInput = document.getElementById('edit-task-timer');
-      timerInput.value = taskToEdit.timer || '';
-      
-      // Afficher/masquer le groupe timer selon la catégorie
-      if (category === 'punctual') {
-        timerGroup.style.display = 'block';
-      } else {
-        timerGroup.style.display = 'none';
-      }
-      
-      // Stocker la catégorie dans un attribut data pour la récupérer lors de la sauvegarde
-      editTaskForm.dataset.category = category;
-      
-      // Afficher le modal
-      editTaskModal.style.display = 'block';
-    }
-  }
-  
-  // Fermer le modal
-  function closeEditTaskModal() {
-    editTaskModal.style.display = 'none';
-    editTaskForm.reset();
-  }
-  
-  // Effacer un champ
-  function clearField(fieldId) {
-    if (fieldId === 'duration-tag' || fieldId === 'difficulty-tag') {
-      // Pour les boutons radio
-      document.querySelectorAll(`input[name="${fieldId}"]`).forEach(input => {
-        input.checked = false;
-      });
-    } else {
-      // Pour les champs texte et nombre
-      document.getElementById(fieldId).value = '';
-    }
-  }
-  
-  // Sauvegarder une tâche
-  function saveTask(event) {
-    event.preventDefault();
-    
-    // Récupérer la catégorie depuis l'attribut data
-    const category = editTaskForm.dataset.category;
-    
-    if (!category || !editingTaskId) return;
-    
-    // Récupérer les valeurs du formulaire
-    const title = document.getElementById('edit-task-title').value;
-    const time = document.getElementById('edit-task-time').value;
-    const location = document.getElementById('edit-task-location').value;
-    
-    const durationTag = document.querySelector('input[name="duration-tag"]:checked')?.value;
-    const difficultyTag = document.querySelector('input[name="difficulty-tag"]:checked')?.value;
-    
-    const repetitionTotal = parseInt(document.getElementById('edit-task-repetition-total').value) || 0;
-    
-    // Timer (uniquement pour les tâches ponctuelles)
-    let timer = 0;
-    if (category === 'punctual') {
-      timer = parseInt(document.getElementById('edit-task-timer').value) || 0;
-    }
-    
-    // Trouver la tâche à modifier
-    const taskIndex = tasks[category].findIndex(task => task.id === editingTaskId);
-    
-    if (taskIndex !== -1) {
-      // Récupérer la tâche existante
-      const existingTask = tasks[category][taskIndex];
-      
-      // Mettre à jour la tâche
-      tasks[category][taskIndex] = {
-        ...existingTask,
-        title,
-        time,
-        location,
-        tags: {
-          duration: durationTag,
-          difficulty: difficultyTag
-        },
-        repetition: {
-          total: repetitionTotal,
-          done: Math.min(existingTask.repetition?.done || 0, repetitionTotal) // S'assurer que done ne dépasse pas total
-        },
-        timer
-      };
-      
-      // Sauvegarder dans le localStorage
-      saveTasksToLocalStorage();
-      
-      // Fermer le modal
-      closeEditTaskModal();
-      
-      // Mettre à jour l'affichage
-      updateAllViews();
-    }
-  }
-  
-  // Supprimer une tâche
-  function deleteTask(taskId, category) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-      // Supprimer la tâche de la catégorie
-      tasks[category] = tasks[category].filter(task => task.id !== taskId);
-      
-      // Sauvegarder dans le localStorage
-      saveTasksToLocalStorage();
-      
-      // Mettre à jour l'affichage
-      updateAllViews();
-    }
-  }
-  
-  // Basculer l'état de complétion d'une tâche
-  function toggleTaskCompletion(taskId, category) {
-    // Trouver la tâche
-    const taskIndex = tasks[category].findIndex(task => task.id === taskId);
-    
-    if (taskIndex !== -1) {
-      const task = tasks[category][taskIndex];
-      
-      // Si la tâche a une répétition
-      if (task.repetition && task.repetition.total > 0) {
-        // Si la tâche n'est pas marquée comme terminée, incrémenter le compteur
-        if (!task.completed) {
-          // Incrémenter le compteur, mais ne pas dépasser le total
-          task.repetition.done = Math.min(task.repetition.done + 1, task.repetition.total);
-          
-          // Marquer la tâche comme terminée uniquement si done >= total
-          task.completed = task.repetition.done >= task.repetition.total;
-        } else {
-          // Si la tâche est déjà marquée comme terminée, la remettre à non terminée
-          // et réinitialiser le compteur à 0
-          task.completed = false;
-          task.repetition.done = 0;
-        }
-      } else {
-        // Pour les tâches sans répétition, simplement inverser l'état
-        task.completed = !task.completed;
-      }
-      
-      // Sauvegarder dans le localStorage
-      saveTasksToLocalStorage();
-      
-      // Mettre à jour l'affichage
-      updateAllViews();
-    }
-  }
-  
-  // Réinitialiser les tâches quotidiennes à minuit
-  function resetDailyTasksAtMidnight() {
-    // Obtenir la date actuelle
-    const now = new Date();
-    
-    // Calculer le temps jusqu'à minuit
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const timeUntilMidnight = tomorrow - now;
-    
-    // Programmer la réinitialisation à minuit
-    setTimeout(() => {
-      // Réinitialiser les tâches quotidiennes
-      tasks.daily.forEach(task => {
-        // Remettre à l'état non terminé
-        task.completed = false;
-        
-        // Réinitialiser le compteur de répétition
-        if (task.repetition && task.repetition.total > 0) {
-          task.repetition.done = 0;
-        }
-      });
-      
-      // Sauvegarder dans le localStorage
-      saveTasksToLocalStorage();
-      
-      // Mettre à jour l'affichage si la vue quotidienne est active
-      if (document.getElementById('daily-view').classList.contains('active')) {
-        updateDailyDisplay();
-      }
-      
-      // Programmer la prochaine réinitialisation
-      resetDailyTasksAtMidnight();
-    }, timeUntilMidnight);
-  }
-  
-  // Mettre à jour toutes les vues
-  function updateAllViews() {
-    updateDailyDisplay();
-    updateWeeklyDisplay();
-    updatePunctualDisplay();
-    updateAllTasksView();
-    
-    // Déclencher l'événement de mise à jour des statistiques
-    document.dispatchEvent(new CustomEvent('tasksUpdated'));
   }
   
   // Générer un ID unique
@@ -703,129 +795,50 @@ document.addEventListener('DOMContentLoaded', () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
   
-  // Vérifier si deux dates sont le même jour
-  function isSameDay(date1, date2) {
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate();
-  }
-  
-  // Sauvegarder les tâches dans le localStorage
-  function saveTasksToLocalStorage() {
-    localStorage.setItem('todoTasksV4', JSON.stringify(tasks));
+  // Mettre à jour toutes les vues
+  function updateAllViews() {
+    const activeView = document.querySelector('.view-btn.active')?.dataset.view;
+    
+    if (activeView === 'daily') {
+      updateDailyDisplay();
+    } else if (activeView === 'weekly') {
+      updateWeeklyDisplay();
+    } else if (activeView === 'punctual') {
+      updatePunctualDisplay();
+    } else if (activeView === 'general') {
+      updateGeneralView();
+    }
   }
   
   // Charger les tâches depuis le localStorage
   function loadTasksFromLocalStorage() {
-    const savedTasks = localStorage.getItem('todoTasksV4');
+    const savedTasks = localStorage.getItem('tasks');
     if (savedTasks) {
       tasks = JSON.parse(savedTasks);
     }
   }
-
-  // ===== ÉVÉNEMENTS =====
   
-  // Changement de vue
-  viewButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      switchView(button.dataset.view);
-    });
-  });
+  // Sauvegarder les tâches dans le localStorage
+  function saveTasksToLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
   
-  // Navigation jour
-  prevDayBtn.addEventListener('click', () => {
-    currentDailyDate.setDate(currentDailyDate.getDate() - 1);
-    updateDailyDisplay();
-  });
-  
-  nextDayBtn.addEventListener('click', () => {
-    currentDailyDate.setDate(currentDailyDate.getDate() + 1);
-    updateDailyDisplay();
-  });
-  
-  // Navigation semaine
-  prevWeekBtn.addEventListener('click', () => {
-    currentWeeklyDate.setDate(currentWeeklyDate.getDate() - 7);
-    updateWeeklyDisplay();
-  });
-  
-  nextWeekBtn.addEventListener('click', () => {
-    currentWeeklyDate.setDate(currentWeeklyDate.getDate() + 7);
-    updateWeeklyDisplay();
-  });
-  
-  // Ajout rapide de tâches
-  dailyQuickAddBtn.addEventListener('click', () => {
-    quickAddTask(dailyQuickAddInput.value, 'daily');
-  });
-  
-  dailyQuickAddInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      quickAddTask(dailyQuickAddInput.value, 'daily');
-    }
-  });
-  
-  weeklyQuickAddBtn.addEventListener('click', () => {
-    quickAddTask(weeklyQuickAddInput.value, 'weekly');
-  });
-  
-  weeklyQuickAddInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      quickAddTask(weeklyQuickAddInput.value, 'weekly');
-    }
-  });
-  
-  punctualQuickAddBtn.addEventListener('click', () => {
-    quickAddTask(punctualQuickAddInput.value, 'punctual');
-  });
-  
-  punctualQuickAddInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      quickAddTask(punctualQuickAddInput.value, 'punctual');
-    }
-  });
-  
-  allQuickAddBtn.addEventListener('click', () => {
-    // Pour la vue générale, ajouter à la catégorie quotidienne par défaut
-    quickAddTask(allQuickAddInput.value, 'daily');
-  });
-  
-  allQuickAddInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      quickAddTask(allQuickAddInput.value, 'daily');
-    }
-  });
-  
-  // Modal d'édition
-  closeModalBtn.addEventListener('click', closeEditTaskModal);
-  window.addEventListener('click', (event) => {
-    if (event.target === editTaskModal) {
-      closeEditTaskModal();
-    }
-  });
-  
-  // Boutons d'effacement des champs
-  clearFieldBtns.forEach(button => {
-    button.addEventListener('click', () => {
-      clearField(button.dataset.field);
-    });
-  });
-  
-  // Formulaire d'édition
-  editTaskForm.addEventListener('submit', saveTask);
-  cancelTaskBtn.addEventListener('click', closeEditTaskModal);
-  
-  // ===== INITIALISATION =====
-  
-  // Charger les tâches depuis le localStorage
-  loadTasksFromLocalStorage();
-  
-  // Initialiser l'affichage
-  updateAllViews();
-  
-  // Programmer la réinitialisation des tâches quotidiennes à minuit
-  resetDailyTasksAtMidnight();
-  
-  // Afficher la vue quotidienne par défaut
-  switchView('daily');
+  // Réinitialiser les tâches quotidiennes à minuit
+  function resetDailyTasksAtMidnight() {
+    const now = new Date();
+    const night = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1, // demain
+      0, 0, 0 // minuit
+    );
+    
+    const msToMidnight = night.getTime() - now.getTime();
+    
+    // Programmer la réinitialisation
+    setTimeout(() => {
+      // Réinitialiser et reprogrammer pour le jour suivant
+      resetDailyTasksAtMidnight();
+    }, msToMidnight);
+  }
 });

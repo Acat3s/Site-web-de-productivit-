@@ -1,14 +1,57 @@
-/* Style général */
+:root {
+  /* Palette de couleurs principale - différente mais harmonieuse */
+  --primary-color: #6C5CE7;
+  --secondary-color: #A29BFE;
+  --accent-color: #FD79A8;
+  --success-color: #00B894;
+  --warning-color: #FDCB6E;
+  --danger-color: #E17055;
+  --info-color: #74B9FF;
+  
+  /* Couleurs de fond et de texte - Mode clair */
+  --bg-color: #F7F7FA;
+  --card-bg: #ffffff;
+  --text-primary: #2D3436;
+  --text-secondary: #636E72;
+  --border-color: rgba(0, 0, 0, 0.1);
+  
+  /* Neumorphisme - Mode clair */
+  --nm-shadow-light: rgba(255, 255, 255, 0.8);
+  --nm-shadow-dark: rgba(0, 0, 0, 0.05);
+  --nm-distance: 8px;
+  --nm-blur: 12px;
+  --nm-pressed-distance: 4px;
+  --nm-pressed-blur: 8px;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+  --bg-color: #1E1E2E;
+  --card-bg: #2D2D3F;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B2BEC3;
+  --border-color: rgba(255, 255, 255, 0.1);
+  
+  /* Neumorphisme - Mode sombre */
+  --nm-shadow-light: rgba(45, 45, 63, 0.8);
+  --nm-shadow-dark: rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  padding: 20px;
   line-height: 1.6;
 }
 
@@ -18,120 +61,56 @@ body {
   padding: 20px;
 }
 
-header {
-  text-align: center;
-  margin-bottom: 30px;
+/* Animation d'apparition */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.title {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  color: #2c3e50;
+/* Animation de pulsation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.view-selector {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+/* Animation de complétion */
+@keyframes completionCheck {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-.view-btn {
-  padding: 10px 20px;
-  background-color: #ecf0f1;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s;
-}
-
-.view-btn:hover {
-  background-color: #d5dbdb;
-}
-
-.view-btn.active {
-  background-color: #3498db;
-  color: white;
-}
-
-main {
-  margin-bottom: 40px;
-}
-
-.view-section {
-  display: none;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  margin-bottom: 30px;
-}
-
-.view-section.active {
-  display: block;
-}
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.navigation {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.nav-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  background-color: #ecf0f1;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.nav-arrow:hover {
-  background-color: #d5dbdb;
-}
-
-.current-period {
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.task-board {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 15px;
-}
-
-footer {
-  text-align: center;
-  margin-top: 40px;
-  padding: 20px;
-  color: #7f8c8d;
-}
-
-.back-button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #3498db;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: all 0.3s;
-}
-
-.back-button:hover {
-  background-color: #2980b9;
+/* Animation de glissement */
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Responsive */
@@ -140,36 +119,22 @@ footer {
     padding: 10px;
   }
   
-  .title {
-    font-size: 2rem;
-  }
-  
-  .view-btn {
-    padding: 8px 15px;
-    font-size: 0.9rem;
-  }
-  
-  .view-section {
-    padding: 15px;
-  }
-  
-  .current-period {
-    font-size: 1rem;
+  body {
+    padding: 10px;
   }
 }
 
 @media (max-width: 480px) {
-  .view-selector {
-    flex-direction: column;
-    width: 100%;
+  .app-container {
+    padding: 5px;
   }
-  
-  .view-btn {
-    width: 100%;
-  }
-  
-  .navigation {
-    flex-direction: column;
-    gap: 10px;
+}
+
+/* Effet de pression pour les appareils tactiles */
+@media (hover: none) {
+  .view-btn:active,
+  .quick-add-button:active,
+  .task-action-btn:active {
+    transform: scale(0.98);
   }
 }
