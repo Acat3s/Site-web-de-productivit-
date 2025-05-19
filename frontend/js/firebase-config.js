@@ -1,12 +1,12 @@
 // Configuration Firebase
 const firebaseConfig = {
   // Remplacez ces valeurs par vos propres configurations Firebase
-  apiKey: "VOTRE_API_KEY",
-  authDomain: "VOTRE_AUTH_DOMAIN",
-  projectId: "VOTRE_PROJECT_ID",
-  storageBucket: "VOTRE_STORAGE_BUCKET",
-  messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
-  appId: "VOTRE_APP_ID"
+  apiKey: "AIzaSyDLArxENPaPQy0Jgqk-mBloF-hZIQdSV6g",
+  authDomain: "productivityhub-e7c10.firebaseapp.com",
+  projectId: "productivityhub-e7c10",
+  storageBucket: "productivityhub-e7c10.firebasestorage.app",
+  messagingSenderId: "237644324323",
+  appId: "1:237644324323:web:267b44ff35822757c314d6"
 };
 
 // Initialisation de Firebase
