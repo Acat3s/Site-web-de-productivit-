@@ -517,9 +517,12 @@ function updateGuestBadge() {
   const banner = document.getElementById('guest-banner');
   if (!banner) return;
   
-  if (authState.isAuthenticated || authState.bannerDismissed) {
+  // Ne pas afficher le bandeau si l'utilisateur est connecté
+  if (authState.isAuthenticated) {
     banner.style.display = 'none';
-  } else {
-    banner.style.display = 'block';
+    return;
   }
+  
+  // N'afficher le bandeau que si l'utilisateur n'est pas connecté ET que le bandeau n'a pas été fermé manuellement
+  banner.style.display = authState.bannerDismissed ? 'none' : 'block';
 } 
