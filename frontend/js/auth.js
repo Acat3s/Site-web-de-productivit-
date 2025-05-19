@@ -334,6 +334,24 @@ function initAuthModalEvents() {
       await handleRegister();
     });
   }
+
+  // Gérer la connexion avec Google
+  const googleLoginBtn = document.getElementById('google-login');
+  const googleRegisterBtn = document.getElementById('google-register');
+  
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleGoogleLogin();
+    });
+  }
+  
+  if (googleRegisterBtn) {
+    googleRegisterBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleGoogleLogin();
+    });
+  }
 }
 
 // Changer d'onglet dans la modal
