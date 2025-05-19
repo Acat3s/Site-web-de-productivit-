@@ -1,4 +1,13 @@
 // Système d'authentification pour ProductivityHub
+import { auth } from './firebase-config.js';
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // État global de l'authentification
 const authState = {
@@ -10,8 +19,23 @@ const authState = {
 
 // Initialisation du système d'authentification
 document.addEventListener('DOMContentLoaded', () => {
-  // Vérifier si l'utilisateur est connecté
-  checkAuthStatus();
+  // Écouter les changements d'état d'authentification Firebase
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authState.isAuthenticated = true;
+      authState.user = {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        initials: user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'
+      };
+    } else {
+      authState.isAuthenticated = false;
+      authState.user = null;
+    }
+    authState.isLoading = false;
+    updateAuthUI();
+  });
   
   // Initialiser les éléments d'interface
   initAuthUI();
@@ -349,33 +373,11 @@ async function handleLogin() {
   const errorElement = document.getElementById('login-error');
   
   try {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      // Mettre à jour l'état d'authentification
-      authState.isAuthenticated = true;
-      authState.user = data.user;
-      
-      // Fermer la modal
-      closeAuthModal();
-      
-      // Mettre à jour l'interface
-      updateAuthUI();
-    } else {
-      // Afficher l'erreur
-      errorElement.textContent = data.message;
-    }
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    closeAuthModal();
   } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
-    errorElement.textContent = 'Une erreur est survenue lors de la connexion';
+    console.error('Erreur de connexion:', error);
+    errorElement.textContent = getErrorMessage(error.code);
   }
 }
 
@@ -386,63 +388,58 @@ async function handleRegister() {
   const confirmPassword = document.getElementById('register-confirm-password').value;
   const errorElement = document.getElementById('register-error');
   
-  // Vérifier que les mots de passe correspondent
   if (password !== confirmPassword) {
     errorElement.textContent = 'Les mots de passe ne correspondent pas';
     return;
   }
   
   try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      // Mettre à jour l'état d'authentification
-      authState.isAuthenticated = true;
-      authState.user = data.user;
-      
-      // Fermer la modal
-      closeAuthModal();
-      
-      // Mettre à jour l'interface
-      updateAuthUI();
-    } else {
-      // Afficher l'erreur
-      errorElement.textContent = data.message;
-    }
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    closeAuthModal();
   } catch (error) {
-    console.error('Erreur lors de l\'inscription:', error);
-    errorElement.textContent = 'Une erreur est survenue lors de l\'inscription';
+    console.error('Erreur d\'inscription:', error);
+    errorElement.textContent = getErrorMessage(error.code);
   }
 }
 
 // Gérer la déconnexion
 async function logout() {
   try {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST'
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      // Mettre à jour l'état d'authentification
-      authState.isAuthenticated = false;
-      authState.user = null;
-      
-      // Mettre à jour l'interface
-      updateAuthUI();
-    }
+    await signOut(auth);
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }
+}
+
+// Gérer la connexion avec Google
+async function handleGoogleLogin() {
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    closeAuthModal();
+  } catch (error) {
+    console.error('Erreur de connexion avec Google:', error);
+    const errorElement = document.getElementById('login-error');
+    errorElement.textContent = getErrorMessage(error.code);
+  }
+}
+
+// Obtenir un message d'erreur lisible
+function getErrorMessage(errorCode) {
+  const errorMessages = {
+    'auth/invalid-email': 'L\'adresse email n\'est pas valide',
+    'auth/user-disabled': 'Ce compte a été désactivé',
+    'auth/user-not-found': 'Aucun compte trouvé avec cet email',
+    'auth/wrong-password': 'Mot de passe incorrect',
+    'auth/email-already-in-use': 'Cette adresse email est déjà utilisée',
+    'auth/weak-password': 'Le mot de passe est trop faible',
+    'auth/operation-not-allowed': 'Cette opération n\'est pas autorisée',
+    'auth/popup-closed-by-user': 'La fenêtre de connexion a été fermée',
+    'auth/cancelled-popup-request': 'La demande de connexion a été annulée',
+    'auth/popup-blocked': 'La fenêtre de connexion a été bloquée'
+  };
+  
+  return errorMessages[errorCode] || 'Une erreur est survenue';
 }
 
 // Ajouter le bandeau mode invité
