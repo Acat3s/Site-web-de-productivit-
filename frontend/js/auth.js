@@ -462,6 +462,9 @@ function getErrorMessage(errorCode) {
 
 // Ajouter le bandeau mode invité
 function addGuestBanner() {
+  // Ne pas créer le bandeau si l'utilisateur est connecté
+  if (authState.isAuthenticated) return;
+  
   // Vérifier si le bandeau existe déjà
   if (document.getElementById('guest-banner')) return;
   
