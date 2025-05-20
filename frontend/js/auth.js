@@ -1,5 +1,5 @@
 // Système d'authentification pour ProductivityHub
-import { auth } from './firebase-config.js';
+import { auth } from '/Site-web-de-productivit-/frontend/js/firebase-config.js';
 import { 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

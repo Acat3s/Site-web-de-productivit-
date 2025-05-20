@@ -1,6 +1,6 @@
 // Intégration de Firebase pour la gestion des tâches
-import { auth } from '../../../frontend/js/firebase-config.js';
-import { FirestoreManager } from '../../../frontend/js/firebase-db.js';
+import { auth } from '/Site-web-de-productivit-/frontend/js/firebase-config.js';
+import { FirestoreManager } from '/Site-web-de-productivit-/frontend/js/firebase-db.js';
 
 // Classe pour gérer les tâches avec Firebase
 class TodoFirebaseManager {

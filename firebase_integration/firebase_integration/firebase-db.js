@@ -1,5 +1,5 @@
 // Configuration de la base de données Firestore pour ProductivityHub
-import { auth } from './firebase-config.js';
+import { auth } from '/Site-web-de-productivit-/frontend/js/firebase-config.js';
 import { 
   getFirestore, 
   collection, 
