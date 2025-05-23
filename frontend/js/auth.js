@@ -25,7 +25,7 @@ const authState = {
   bannerDismissed: false
 };
 
-export const authState = authState;
+export { authState };
 
 // Initialisation du système d'authentification
 document.addEventListener('DOMContentLoaded', () => {
