@@ -1,7 +1,4 @@
 // Système d'authentification pour ProductivityHub avec Firebase UI intégré
-// ... (534 lignes du fichier sécurisé à insérer ici) ...
-
-// Système d'authentification pour ProductivityHub
 import { auth, db } from './firebase-config.js';
 import { 
   signInWithEmailAndPassword,
@@ -9,7 +6,8 @@ import {
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   doc,
@@ -49,6 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
     authState.isLoading = false;
     updateAuthUI();
   });
+  
+  // Vérifier s'il y a un résultat de redirection (pour la compatibilité)
+  getRedirectResult(auth)
+    .then((result) => {
+      // Gérer le résultat si nécessaire
+      if (result && result.user) {
+        console.log("Utilisateur connecté après redirection");
+      }
+    })
+    .catch((error) => {
+      console.error("Erreur après redirection:", error);
+    });
   
   // Initialiser les éléments d'interface
   initAuthUI();
@@ -350,6 +360,7 @@ async function handleLogin() {
   const errorElement = document.getElementById('login-error');
   
   try {
+    // Utiliser signInWithEmailAndPassword qui ne nécessite pas de redirection
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     closeAuthModal();
   } catch (error) {
@@ -371,6 +382,7 @@ async function handleRegister() {
   }
   
   try {
+    // Utiliser createUserWithEmailAndPassword qui ne nécessite pas de redirection
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
     // Créer un document utilisateur dans Firestore
@@ -400,6 +412,8 @@ async function logout() {
 async function handleGoogleLogin() {
   const provider = new GoogleAuthProvider();
   try {
+    // Important: Utiliser signInWithPopup au lieu de signInWithRedirect
+    // pour éviter les redirections vers firebaseapp.com
     const result = await signInWithPopup(auth, provider);
     
     // Vérifier si c'est une nouvelle inscription
@@ -489,20 +503,31 @@ function addGuestBanner() {
 // Mettre à jour l'interface selon l'état d'authentification
 function updateAuthUI() {
   updateAuthButton();
-  updateGuestBadge();
+  updateGuestBanner();
 }
 
-// Mettre à jour le badge invité
-function updateGuestBadge() {
+// Mettre à jour le bandeau invité
+function updateGuestBanner() {
   const banner = document.getElementById('guest-banner');
-  if (!banner) return;
   
-  // Ne pas afficher le bandeau si l'utilisateur est connecté
-  if (authState.isAuthenticated) {
+  if (!authState.isAuthenticated && !authState.isLoading && !authState.bannerDismissed) {
+    if (!banner) {
+      addGuestBanner();
+    } else {
+      banner.style.display = 'block';
+    }
+  } else if (banner) {
     banner.style.display = 'none';
-    return;
   }
-  
-  // N'afficher le bandeau que si l'utilisateur n'est pas connecté ET que le bandeau n'a pas été fermé manuellement
-  banner.style.display = authState.bannerDismissed ? 'none' : 'block';
-} 
+}
+
+// Exporter les fonctions et l'état
+export { 
+  authState, 
+  openAuthModal, 
+  closeAuthModal, 
+  handleLogin, 
+  handleRegister, 
+  logout, 
+  handleGoogleLogin 
+};

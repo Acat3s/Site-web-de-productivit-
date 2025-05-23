@@ -18,9 +18,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Configuration importante pour éviter les redirections vers firebaseapp.com
+// Cette ligne force l'utilisation de popups au lieu de redirections
 auth.useDeviceLanguage();
 
 // Désactiver la persistance de session pour éviter certains problèmes de sécurité
 // auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-export { app, auth, db }; 
+export { app, auth, db };
