@@ -17,15 +17,12 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// État global de l'authentification
-const authState = {
+export const authState = {
   isAuthenticated: false,
   user: null,
   isLoading: true,
   bannerDismissed: false
 };
-
-export { authState };
 
 // Initialisation du système d'authentification
 document.addEventListener('DOMContentLoaded', () => {
