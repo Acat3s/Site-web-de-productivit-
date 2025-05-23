@@ -11,13 +11,14 @@ import {
   where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { authState } from './auth.js';
 
 // Classe pour gérer les tâches avec Firebase
 class TodoFirebaseManager {
   
   // Vérifier si l'utilisateur est connecté
   static isUserLoggedIn() {
-    return auth.currentUser !== null;
+    return authState.isAuthenticated;
   }
   
   // ===== OPÉRATIONS DE LECTURE =====
@@ -127,6 +128,9 @@ class TodoFirebaseManager {
   
   // Ajouter une nouvelle tâche
   static async addTask(category, taskData) {
+    console.log("UID utilisateur :", auth.currentUser?.uid);
+    const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
+    console.log("Chemin Firestore :", tasksRef.path);
     if (!this.isUserLoggedIn()) {
       console.warn('Utilisateur non connecté, utilisation du stockage local');
       alert('Erreur : utilisateur non connecté.');
@@ -134,7 +138,6 @@ class TodoFirebaseManager {
     }
     
     try {
-      const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
       const docRef = await addDoc(tasksRef, {
         ...taskData,
         category,
@@ -145,7 +148,7 @@ class TodoFirebaseManager {
       return { success: true, id: docRef.id };
     } catch (error) {
       alert('Erreur lors de l\'ajout de la tâche dans Firestore : ' + error.message);
-      console.error(`Exception lors de l'ajout d'une tâche ${category}:`, error);
+      console.error("Erreur Firestore détaillée :", error.code, error.message);
       return { success: false, error };
     }
   }

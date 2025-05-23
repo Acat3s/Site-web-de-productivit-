@@ -25,6 +25,8 @@ const authState = {
   bannerDismissed: false
 };
 
+export const authState = authState;
+
 // Initialisation du système d'authentification
 document.addEventListener('DOMContentLoaded', () => {
   // Écouter les changements d'état d'authentification Firebase
