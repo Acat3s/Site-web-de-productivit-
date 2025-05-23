@@ -767,6 +767,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ajouter une tâche rapidement
   function quickAddTask(title, category) {
     if (!title.trim()) return;
+    if (typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && !TodoFirebaseManager.isUserLoggedIn()) {
+      alert('Vous devez être connecté pour ajouter une tâche synchronisée.');
+      return;
+    }
     
     // Créer une nouvelle tâche
     const newTask = {
@@ -840,5 +844,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Réinitialiser et reprogrammer pour le jour suivant
       resetDailyTasksAtMidnight();
     }, msToMidnight);
+  }
+
+  function clearLocalTasks() {
+    localStorage.removeItem('tasks');
   }
 });

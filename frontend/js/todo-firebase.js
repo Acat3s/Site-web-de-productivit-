@@ -129,6 +129,7 @@ class TodoFirebaseManager {
   static async addTask(category, taskData) {
     if (!this.isUserLoggedIn()) {
       console.warn('Utilisateur non connecté, utilisation du stockage local');
+      alert('Erreur : utilisateur non connecté.');
       return { success: false, error: 'Utilisateur non connecté' };
     }
     
@@ -140,9 +141,10 @@ class TodoFirebaseManager {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      
+      alert('Tâche ajoutée avec succès dans Firestore !');
       return { success: true, id: docRef.id };
     } catch (error) {
+      alert('Erreur lors de l\'ajout de la tâche dans Firestore : ' + error.message);
       console.error(`Exception lors de l'ajout d'une tâche ${category}:`, error);
       return { success: false, error };
     }
