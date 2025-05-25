@@ -23,4 +23,7 @@ auth.useDeviceLanguage();
 // Désactiver la persistance de session pour éviter certains problèmes de sécurité
 // auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
+window.auth = auth;
+window.db = db;
+
 export { app, auth, db }; 
