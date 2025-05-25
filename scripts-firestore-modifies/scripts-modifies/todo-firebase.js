@@ -275,102 +275,106 @@ class TodoFirebaseManager {
   
   // ===== SYNCHRONISATION =====
   
-  // Synchroniser les tâches locales avec Firebase
+  // Synchroniser les tâches locales avec Firebase - Méthode améliorée
   static async syncTasksToFirebase(localTasks) {
-    if (!this.isUserLoggedIn()) {
-      console.warn('Utilisateur non connecté, impossible de synchroniser');
-      return { success: false, error: 'Utilisateur non connecté' };
-    }
-    
-    try {
-      const categories = ['daily', 'weekly', 'punctual', 'general'];
-      const results = {};
+    return this.retryOperation(async () => {
+      if (!auth.currentUser) {
+        console.error("Erreur : utilisateur non authentifié");
+        return { success: false, error: 'Utilisateur non connecté' };
+      }
       
-      for (const category of categories) {
-        if (!localTasks[category]) continue;
+      try {
+        const categories = ['daily', 'weekly', 'punctual', 'general'];
+        const results = {};
         
-        // Récupérer les tâches existantes dans Firebase
-        const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
-        const q = query(tasksRef, where('category', '==', category));
-        const querySnapshot = await getDocs(q);
-        
-        // Créer un map des tâches Firebase par ID local
-        const firebaseTasksMap = {};
-        querySnapshot.forEach(doc => {
-          const task = doc.data();
-          if (task.localId) {
-            firebaseTasksMap[task.localId] = { id: doc.id, ...task };
-          }
-        });
-        
-        // Synchroniser chaque tâche locale
-        const categoryResults = [];
-        
-        for (const localTask of localTasks[category]) {
-          let result;
+        for (const category of categories) {
+          if (!localTasks[category]) continue;
           
-          if (firebaseTasksMap[localTask.id]) {
-            // La tâche existe déjà dans Firebase, mise à jour
-            const firebaseTask = firebaseTasksMap[localTask.id];
-            result = await this.updateTask(category, firebaseTask.id, {
-              ...localTask,
-              localId: localTask.id
-            });
-          } else {
-            // Nouvelle tâche à ajouter à Firebase
-            result = await this.addTask(category, {
-              ...localTask,
-              localId: localTask.id
-            });
+          // Récupérer les tâches existantes dans Firebase
+          const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
+          const q = query(tasksRef, where('category', '==', category));
+          const querySnapshot = await getDocs(q);
+          
+          // Créer un map des tâches Firebase par ID local
+          const firebaseTasksMap = {};
+          querySnapshot.forEach(doc => {
+            const task = doc.data();
+            if (task.localId) {
+              firebaseTasksMap[task.localId] = { id: doc.id, ...task };
+            }
+          });
+          
+          // Synchroniser chaque tâche locale
+          const categoryResults = [];
+          
+          for (const localTask of localTasks[category]) {
+            let result;
+            
+            if (firebaseTasksMap[localTask.id]) {
+              // La tâche existe déjà dans Firebase, mise à jour
+              const firebaseTask = firebaseTasksMap[localTask.id];
+              result = await this.updateTask(category, firebaseTask.id, {
+                ...localTask,
+                localId: localTask.id
+              });
+            } else {
+              // Nouvelle tâche à ajouter à Firebase
+              result = await this.addTask(category, {
+                ...localTask,
+                localId: localTask.id
+              });
+            }
+            
+            categoryResults.push(result);
           }
           
-          categoryResults.push(result);
+          results[category] = categoryResults;
         }
         
-        results[category] = categoryResults;
+        return { success: true, results };
+      } catch (error) {
+        console.error('Exception lors de la synchronisation des tâches:', error);
+        return { success: false, error };
       }
-      
-      return { success: true, results };
-    } catch (error) {
-      console.error('Exception lors de la synchronisation des tâches:', error);
-      return { success: false, error };
-    }
+    });
   }
   
-  // Synchroniser les tâches Firebase avec le stockage local
+  // Synchroniser les tâches Firebase avec le stockage local - Méthode améliorée
   static async syncTasksFromFirebase() {
-    if (!this.isUserLoggedIn()) {
-      console.warn('Utilisateur non connecté, impossible de synchroniser');
-      return { success: false, error: 'Utilisateur non connecté' };
-    }
-    
-    try {
-      const categories = ['daily', 'weekly', 'punctual', 'general'];
-      const results = {};
-      
-      for (const category of categories) {
-        const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
-        const q = query(tasksRef, where('category', '==', category));
-        const querySnapshot = await getDocs(q);
-        
-        const tasks = [];
-        querySnapshot.forEach(doc => {
-          const task = doc.data();
-          tasks.push({
-            ...task,
-            id: task.localId || doc.id // Utiliser l'ID local s'il existe
-          });
-        });
-        
-        results[category] = { success: true, data: tasks };
+    return this.retryOperation(async () => {
+      if (!auth.currentUser) {
+        console.error("Erreur : utilisateur non authentifié");
+        return { success: false, error: 'Utilisateur non connecté' };
       }
       
-      return { success: true, results };
-    } catch (error) {
-      console.error('Exception lors de la synchronisation des tâches:', error);
-      return { success: false, error };
-    }
+      try {
+        const categories = ['daily', 'weekly', 'punctual', 'general'];
+        const results = {};
+        
+        for (const category of categories) {
+          const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
+          const q = query(tasksRef, where('category', '==', category));
+          const querySnapshot = await getDocs(q);
+          
+          const tasks = [];
+          querySnapshot.forEach(doc => {
+            const task = doc.data();
+            tasks.push({
+              ...task,
+              id: task.localId || doc.id // Utiliser l'ID local s'il existe
+            });
+          });
+          
+          results[category] = { success: true, data: tasks };
+        }
+        
+        return { success: true, results };
+      } catch (error) {
+        console.error('Exception lors de la synchronisation des tâches:', error);
+        return { success: false, error };
+      }
+    });
   }
 }
 
-export { TodoFirebaseManager }; 
+export { TodoFirebaseManager };
