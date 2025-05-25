@@ -1,32 +1,44 @@
 // Code de diagnostic à ajouter temporairement dans votre app To-Do List
 
-import { auth, db } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+// Suppression des imports statiques
+// import { auth, db } from './firebase-config.js';
+// import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Diagnostic complet
 function diagnoseFirestore() {
   console.log('=== DIAGNOSTIC FIRESTORE ===');
   
   // 1. Vérifier Firebase
-  console.log('Firebase App:', db.app);
-  console.log('Auth instance:', auth);
-  console.log('Firestore instance:', db);
+  console.log('Firebase App:', window.db?.app);
+  console.log('Auth instance:', window.auth);
+  console.log('Firestore instance:', window.db);
   
   // 2. Vérifier l'état d'authentification
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log('✅ Utilisateur connecté:');
-      console.log('  - UID:', user.uid);
-      console.log('  - Email:', user.email);
-      console.log('  - Token valide:', user.accessToken ? 'Oui' : 'Non');
-      
-      // 3. Tester l'accès à Firestore
-      testFirestoreAccess(user.uid);
-      
-    } else {
-      console.log('❌ Aucun utilisateur connecté');
-    }
-  });
+  // Import dynamique de onAuthStateChanged si non présent
+  if (window.onAuthStateChanged) {
+    window.onAuthStateChanged(window.auth, (user) => {
+      handleAuthState(user);
+    });
+  } else {
+    import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js').then(mod => {
+      mod.onAuthStateChanged(window.auth, (user) => {
+        handleAuthState(user);
+      });
+    });
+  }
+}
+
+function handleAuthState(user) {
+  if (user) {
+    console.log('✅ Utilisateur connecté:');
+    console.log('  - UID:', user.uid);
+    console.log('  - Email:', user.email);
+    console.log('  - Token valide:', user.accessToken ? 'Oui' : 'Non');
+    // 3. Tester l'accès à Firestore
+    testFirestoreAccess(user.uid);
+  } else {
+    console.log('❌ Aucun utilisateur connecté');
+  }
 }
 
 // Test d'accès à Firestore
@@ -34,11 +46,11 @@ async function testFirestoreAccess(userId) {
   try {
     console.log('=== TEST ACCÈS FIRESTORE ===');
     
-    // Importer les fonctions Firestore
+    // Importer les fonctions Firestore dynamiquement
     const { collection, addDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
     
     // Construire le chemin selon vos règles
-    const tasksRef = collection(db, 'users', userId, 'tasks');
+    const tasksRef = collection(window.db, 'users', userId, 'tasks');
     console.log('Chemin des tâches:', `users/${userId}/tasks`);
     
     // Tenter de lire les tâches existantes
@@ -63,7 +75,7 @@ async function testFirestoreAccess(userId) {
       
       // Supprimer la tâche de test
       const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-      await deleteDoc(doc(db, 'users', userId, 'tasks', docRef.id));
+      await deleteDoc(doc(window.db, 'users', userId, 'tasks', docRef.id));
       console.log('✅ Suppression de test réussie');
       
     } catch (writeError) {
