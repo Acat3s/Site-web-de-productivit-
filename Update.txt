@@ -1,0 +1,14 @@
+# Update - Journal des modifications
+
+## Version 1.0 (2024-05-25)
+
+- Ajout du script de diagnostic Firestore (frontend/js/diagnostic-firestore.js) pour vérifier la connexion et les droits Firestore.
+- Exposition des objets auth et db sur window dans frontend/js/firebase-config.js pour permettre l'accès global.
+- Correction de l'inclusion des scripts Firebase et diagnostic dans apps/Todo/todo.html.
+- Correction du script de diagnostic pour fonctionner sans import statique.
+- Ajout du script de vérification de structure Firestore (frontend/js/verify-firestore.js) et inclusion dans apps/Todo/todo.html.
+- Instructions pour utiliser verifyFirestoreStructure() depuis la console pour inspecter les documents Firestore.
+
+---
+
+Pour chaque nouvelle modification, incrémentez la version et ajoutez une description claire des changements apportés. 
