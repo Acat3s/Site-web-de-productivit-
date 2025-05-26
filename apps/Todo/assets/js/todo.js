@@ -767,16 +767,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ajouter une tâche rapidement
   function quickAddTask(title, category) {
     if (!title.trim()) return;
-    if (typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && !TodoFirebaseManager.isUserLoggedIn()) {
-      alert('Vous devez être connecté pour ajouter une tâche synchronisée.');
-      return;
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
+    console.log('[quickAddTask] Catégorie:', category, 'Titre:', title, 'Connecté:', isConnected);
+
+    // Formater la date au format ISO (YYYY-MM-DD)
+    function formatDate(date) {
+      const d = new Date(date);
+      return d.toISOString().split('T')[0];
     }
-    
+    const today = formatDate(new Date());
+
     // Créer une nouvelle tâche
     const newTask = {
       id: generateId(),
       title,
-      date: new Date().toISOString(),
+      date: today,
       completed: false,
       tags: {},
       repetition: {
@@ -785,13 +790,31 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       timer: 0
     };
-    
-    // Ajouter la tâche à la catégorie correspondante
-    tasks[category].push(newTask);
-    
-    // Sauvegarder et mettre à jour l'affichage
-    saveTasksToLocalStorage();
-    updateAllViews();
+    console.log('[quickAddTask] Données de la tâche à ajouter:', newTask);
+
+    if (isConnected) {
+      // Ajout Firestore
+      TodoFirebaseManager.addTask(category, newTask)
+        .then(result => {
+          console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
+          if (result.success) {
+            alert('Tâche synchronisée avec Firestore !');
+            // Optionnel : recharger les tâches depuis Firestore ici
+          } else {
+            alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
+          }
+        })
+        .catch(error => {
+          console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
+          alert('Erreur lors de l\'ajout Firestore: ' + error.message);
+        });
+    } else {
+      // Ajout local
+      tasks[category].push(newTask);
+      saveTasksToLocalStorage();
+      updateAllViews();
+      alert('Tâche ajoutée en local (mode invité)');
+    }
   }
   
   // Générer un ID unique
