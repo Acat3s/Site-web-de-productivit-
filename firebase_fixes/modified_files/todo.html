@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do - ProductivityHub</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/todo.css">
+  <link rel="stylesheet" href="assets/css/header.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="header-top">
+        <a href="../../index.html" class="back-button">
+          <i class="fas fa-arrow-left"></i> Menu
+        </a>
+        <h1 class="title">To-Do List</h1>
+        <button class="theme-toggle" id="theme-toggle" title="Changer le thème">
+          <i id="theme-icon" class="fas fa-moon"></i>
+        </button>
+      </div>
+      <div class="view-selector">
+        <button class="view-btn active" data-view="daily" title="Vue quotidienne">Todo Quotidienne</button>
+        <button class="view-btn" data-view="weekly" title="Vue hebdomadaire">Todo Hebdomadaire</button>
+        <button class="view-btn" data-view="punctual" title="Vue ponctuelle">Todo Ponctuel</button>
+        <button class="view-btn" data-view="general" title="Vue générale">Todo Générale</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Vue Todo Quotidienne -->
+      <section id="daily-view" class="view-section active">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">Todo : <span id="current-date">18 mai 2025</span></div>
+            <div class="nav-arrow right-arrow" style="display: none;">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+        <div class="task-board">
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" placeholder="Ajouter une tâche..." data-view="daily">
+            <button class="quick-add-button"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="daily-tasks" class="task-list"></div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Hebdomadaire -->
+      <section id="weekly-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">Semaine : <span id="current-week">20 - 26 mai 2025</span></div>
+            <div class="nav-arrow right-arrow" style="display: none;">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+        <div class="task-board">
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" placeholder="Ajouter une tâche..." data-view="weekly">
+            <button class="quick-add-button"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="weekly-tasks" class="task-list"></div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Ponctuel -->
+      <section id="punctual-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="current-period">Todo Ponctuel</div>
+          </div>
+        </div>
+        <div class="task-board">
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" placeholder="Ajouter une tâche..." data-view="punctual">
+            <button class="quick-add-button"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="punctual-tasks" class="task-list"></div>
+        </div>
+      </section>
+
+      <!-- Vue Todo Générale -->
+      <section id="general-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="current-period">Todo Générale</div>
+          </div>
+        </div>
+        <div class="task-board">
+          <div class="quick-add-container">
+            <input type="text" class="quick-add-input" placeholder="Ajouter une tâche..." data-view="general">
+            <button class="quick-add-button"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="general-tasks" class="task-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal d'édition de tâche -->
+  <div id="edit-task-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Modifier la tâche</h2>
+      <form id="edit-task-form">
+        <div class="form-group">
+          <label for="task-title">Titre</label>
+          <input type="text" id="task-title" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="task-time">Heure</label>
+          <input type="time" id="task-time">
+          <button type="button" class="clear-field-btn" data-field="task-time">Effacer</button>
+        </div>
+        
+        <div class="form-group">
+          <label for="task-location">Lieu</label>
+          <input type="text" id="task-location">
+          <button type="button" class="clear-field-btn" data-field="task-location">Effacer</button>
+        </div>
+        
+        <div class="form-group">
+          <label>Étiquettes</label>
+          <div class="tags-container">
+            <div class="tag-group">
+              <label>Durée:</label>
+              <button type="button" class="tag-btn" data-tag="duration" data-value="Court">Court</button>
+              <button type="button" class="tag-btn" data-tag="duration" data-value="Long">Long</button>
+            </div>
+            
+            <div class="tag-group">
+              <label>Difficulté:</label>
+              <button type="button" class="tag-btn" data-tag="difficulty" data-value="Facile">Facile</button>
+              <button type="button" class="tag-btn" data-tag="difficulty" data-value="Difficile">Difficile</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Répétition</label>
+          <div class="repetition-container">
+            <p class="repetition-help">Définissez combien de fois cette tâche doit être répétée. Par exemple, "3" signifie que la tâche doit être effectuée 3 fois au total.</p>
+            <div class="repetition-inputs">
+              <div class="repetition-input-group">
+                <label for="repetition-total">Nombre total:</label>
+                <input type="number" id="repetition-total" min="0" value="0">
+              </div>
+            </div>
+            <p class="repetition-example">Exemple: Si vous définissez 3 répétitions, la tâche affichera "0/3" au début, puis "1/3", "2/3" et enfin "3/3" lorsqu'elle sera complétée.</p>
+          </div>
+        </div>
+        
+        <div id="timer-container" class="form-group">
+          <label for="task-timer">Timer (jours)</label>
+          <input type="number" id="task-timer" min="0" value="0">
+          <p class="timer-help">Définissez un délai en jours. Une notification sera envoyée à l'expiration.</p>
+          <button type="button" class="clear-field-btn" data-field="task-timer">Effacer</button>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" id="cancel-task">Annuler</button>
+          <button type="submit" id="save-task">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts Firebase -->
+  <script type="module" src="../../frontend/js/firebase-config.js"></script>
+  <script type="module" src="../../frontend/js/auth.js"></script>
+  <script type="module" src="../../frontend/js/todo-firebase.js"></script>
+  <script type="module" src="../../frontend/js/todo-firebase-bridge.js"></script>
+  
+  <!-- Script principal -->
+  <script src="assets/js/todo.js"></script>
+  
+  <!-- Scripts de diagnostic -->
+  <script src="../../frontend/js/diagnostic-firestore.js"></script>
+  <script src="../../frontend/js/verify-firestore.js"></script>
+  <script src="../../frontend/js/test-root-tasks.js"></script>
+  <script src="../../frontend/js/create-test-subcollection.js"></script>
+</body>
+</html>

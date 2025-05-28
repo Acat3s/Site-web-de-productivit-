@@ -62,4 +62,4 @@ async function diagnoseTasksSubcollection() {
 }
 
 // Exposer la fonction globalement
-window.diagnoseTasksSubcollection = diagnoseTasksSubcollection; 
+window.diagnoseTasksSubcollection = diagnoseTasksSubcollection;

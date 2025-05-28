@@ -19,7 +19,60 @@ class TodoFirebaseManager {
   // Vérifier si l'utilisateur est connecté - Méthode améliorée
   static isUserLoggedIn() {
     // Vérification directe de auth.currentUser au lieu de authState
-    return auth.currentUser !== null;
+    const isLoggedIn = auth.currentUser !== null;
+    console.log("TodoFirebaseManager.isUserLoggedIn() - État:", isLoggedIn);
+    console.log("auth.currentUser:", auth.currentUser);
+    console.log("authState:", authState);
+    return isLoggedIn;
+  }
+  
+  // Vérifier si l'utilisateur est connecté avec un token valide
+  static async isUserLoggedInWithValidToken() {
+    if (!auth.currentUser) {
+      console.log("TodoFirebaseManager.isUserLoggedInWithValidToken() - Utilisateur non connecté");
+      return false;
+    }
+    
+    try {
+      // Forcer le rafraîchissement du token pour s'assurer qu'il est valide
+      await auth.currentUser.getIdToken(true);
+      console.log("TodoFirebaseManager.isUserLoggedInWithValidToken() - Token valide");
+      return true;
+    } catch (error) {
+      console.error("Erreur de validation du token:", error);
+      return false;
+    }
+  }
+  
+  // Créer explicitement la sous-collection tasks
+  static async ensureTasksCollection() {
+    if (!auth.currentUser) {
+      console.error("Utilisateur non connecté");
+      return false;
+    }
+    
+    try {
+      // Forcer le rafraîchissement du token
+      await auth.currentUser.getIdToken(true);
+      
+      // Créer un document temporaire pour s'assurer que la sous-collection existe
+      const tasksRef = collection(db, 'users', auth.currentUser.uid, 'tasks');
+      const tempDoc = await addDoc(tasksRef, {
+        _temp: true,
+        createdAt: new Date()
+      });
+      
+      // Supprimer immédiatement le document temporaire
+      await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'tasks', tempDoc.id));
+      
+      console.log("Sous-collection 'tasks' créée avec succès");
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la création de la sous-collection 'tasks':", error);
+      console.error("Code d'erreur:", error.code);
+      console.error("Message:", error.message);
+      return false;
+    }
   }
   
   // ===== OPÉRATIONS DE LECTURE =====
@@ -162,6 +215,9 @@ class TodoFirebaseManager {
       console.log("UID utilisateur :", uid);
       
       try {
+        // S'assurer que la sous-collection existe
+        await this.ensureTasksCollection();
+        
         const tasksRef = collection(db, 'users', uid, 'tasks');
         console.log("Chemin Firestore :", `users/${uid}/tasks`);
         
