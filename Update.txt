@@ -9,6 +9,16 @@
 - Ajout du script de vérification de structure Firestore (frontend/js/verify-firestore.js) et inclusion dans apps/Todo/todo.html.
 - Instructions pour utiliser verifyFirestoreStructure() depuis la console pour inspecter les documents Firestore.
 
+## Version 1.1 (2024-05-26)
+
+- Remplacement de `frontend/js/diagnostic-firestore.js` par la version corrigée (diagnostic de la sous-collection tasks).
+- Remplacement de `frontend/js/todo-firebase.js` par la version corrigée (gestion robuste de Firestore, création explicite de la sous-collection tasks, logs de debug, etc.).
+- Ajout de `frontend/js/todo-firebase-bridge.js` pour exposer `TodoFirebaseManager` globalement (utilisable dans les scripts non-modules).
+- Ajout de `frontend/js/auth-firestore-sync-test.js` pour diagnostiquer la synchronisation entre l'authentification et Firestore.
+- Remplacement de `apps/Todo/todo.html` par la version corrigée : chargement correct des modules, bridge, scripts de diagnostic, etc.
+- Tous les scripts de diagnostic et de test sont désormais inclus dans la page To-Do.
+- Mise à jour du projet pour garantir la compatibilité entre les modules ES6 et les scripts globaux.
+
 ---
 
 Pour chaque nouvelle modification, incrémentez la version et ajoutez une description claire des changements apportés. 

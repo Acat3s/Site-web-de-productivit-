@@ -1,3 +1,4 @@
+// Modification de todo.js pour synchroniser avec Firestore
 document.addEventListener('DOMContentLoaded', () => {
   console.log('To-Do script loaded');
 
@@ -41,9 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialiser le thème
   initTheme();
-  
-  // Mettre à jour toutes les vues
-  updateAllViews();
 
   // ===== FONCTIONS D'INITIALISATION =====
   
@@ -65,6 +63,87 @@ document.addEventListener('DOMContentLoaded', () => {
       loadTasksFromLocalStorage();
       updateAllViews();
     }
+  }
+  
+  // Charger les tâches depuis Firestore
+  async function loadTasksFromFirestore() {
+    console.log("Chargement des tâches depuis Firestore...");
+    
+    try {
+      // Récupérer toutes les tâches depuis Firestore
+      const result = await TodoFirebaseManager.syncTasksFromFirebase();
+      
+      if (result.success) {
+        console.log("Tâches récupérées depuis Firestore:", result);
+        
+        // Mettre à jour les tâches locales avec les données Firestore
+        if (result.results.daily && result.results.daily.success) {
+          tasks.daily = result.results.daily.data || [];
+        }
+        
+        if (result.results.weekly && result.results.weekly.success) {
+          tasks.weekly = result.results.weekly.data || [];
+        }
+        
+        if (result.results.punctual && result.results.punctual.success) {
+          tasks.punctual = result.results.punctual.data || [];
+        }
+        
+        if (result.results.general && result.results.general.success) {
+          tasks.general = result.results.general.data || [];
+        }
+        
+        console.log("Tâches mises à jour depuis Firestore:", tasks);
+        return true;
+      } else {
+        console.error("Erreur lors de la récupération des tâches depuis Firestore:", result.error);
+        // Fallback sur localStorage
+        loadTasksFromLocalStorage();
+        return false;
+      }
+    } catch (error) {
+      console.error("Exception lors du chargement des tâches depuis Firestore:", error);
+      // Fallback sur localStorage
+      loadTasksFromLocalStorage();
+      return false;
+    }
+  }
+  
+  // Charger les tâches depuis le localStorage
+  function loadTasksFromLocalStorage() {
+    console.log("Chargement des tâches depuis localStorage...");
+    
+    // Charger les tâches quotidiennes
+    const savedDailyTasks = localStorage.getItem('dailyTasks');
+    if (savedDailyTasks) {
+      tasks.daily = JSON.parse(savedDailyTasks);
+    }
+    
+    // Charger les tâches hebdomadaires
+    const savedWeeklyTasks = localStorage.getItem('weeklyTasks');
+    if (savedWeeklyTasks) {
+      tasks.weekly = JSON.parse(savedWeeklyTasks);
+    }
+    
+    // Charger les tâches ponctuelles
+    const savedPunctualTasks = localStorage.getItem('punctualTasks');
+    if (savedPunctualTasks) {
+      tasks.punctual = JSON.parse(savedPunctualTasks);
+    }
+    
+    // Charger les tâches générales
+    const savedGeneralTasks = localStorage.getItem('generalTasks');
+    if (savedGeneralTasks) {
+      tasks.general = JSON.parse(savedGeneralTasks);
+    }
+  }
+  
+  // Sauvegarder les tâches dans le localStorage
+  function saveTasksToLocalStorage() {
+    localStorage.setItem('dailyTasks', JSON.stringify(tasks.daily));
+    localStorage.setItem('weeklyTasks', JSON.stringify(tasks.weekly));
+    localStorage.setItem('punctualTasks', JSON.stringify(tasks.punctual));
+    localStorage.setItem('generalTasks', JSON.stringify(tasks.general));
   }
   
   // Initialiser le thème
@@ -343,6 +422,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateGeneralView() {
     // Charger toutes les tâches
     loadGeneralTasks();
+  }
+  
+  // Mettre à jour toutes les vues
+  function updateAllViews() {
+    const activeView = document.querySelector('.view-btn.active');
+    if (activeView) {
+      switchView(activeView.dataset.view);
+    } else {
+      // Par défaut, afficher la vue quotidienne
+      switchView('daily');
+    }
   }
   
   // Obtenir le premier jour de la semaine (lundi)
@@ -647,154 +737,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (task.repetition && task.repetition.total > 0) {
       return task.repetition.done >= task.repetition.total;
     }
+    
     return task.completed;
   }
   
-  // Basculer l'état de complétion d'une tâche
-  function toggleTaskCompletion(taskId, category) {
-    const task = tasks[category].find(t => t.id === taskId);
-    if (!task) return;
-    
-    if (task.repetition && task.repetition.total > 0) {
-      // Pour les tâches avec répétition, incrémenter le compteur
-      if (task.repetition.done < task.repetition.total) {
-        task.repetition.done++;
-        
-        // Si on atteint le total, marquer comme complétée
-        if (task.repetition.done >= task.repetition.total) {
-          task.completed = true;
-        }
-      } else {
-        // Si déjà au max, réinitialiser
-        task.repetition.done = 0;
-        task.completed = false;
-      }
-    } else {
-      // Pour les tâches normales, basculer l'état
-      task.completed = !task.completed;
-    }
-    
-    // Sauvegarder et mettre à jour l'affichage
-    saveTasksToLocalStorage();
-    updateAllViews();
+  // Générer un ID unique
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   }
   
-  // Ouvrir le modal d'édition de tâche
-  function openEditTaskModal(taskId, category) {
-    const task = tasks[category].find(t => t.id === taskId);
-    if (!task) return;
-    
-    // Stocker l'ID de la tâche en cours d'édition
-    editingTaskId = { id: taskId, category };
-    
-    // Remplir le formulaire avec les données de la tâche
-    document.getElementById('task-title').value = task.title;
-    document.getElementById('task-time').value = task.time || '';
-    document.getElementById('task-location').value = task.location || '';
-    
-    // Réinitialiser les étiquettes
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    
-    // Sélectionner les étiquettes actives
-    if (task.tags) {
-      if (task.tags.duration) {
-        document.querySelector(`.tag-btn[data-tag="duration"][data-value="${task.tags.duration}"]`)?.classList.add('active');
-      }
-      
-      if (task.tags.difficulty) {
-        document.querySelector(`.tag-btn[data-tag="difficulty"][data-value="${task.tags.difficulty}"]`)?.classList.add('active');
-      }
-    }
-    
-    // Répétition
-    document.getElementById('repetition-total').value = task.repetition ? task.repetition.total : 0;
-    
-    // Timer
-    document.getElementById('task-timer').value = task.timer || 0;
-    
-    // Afficher le modal
-    editTaskModal.style.display = 'block';
-  }
-  
-  // Fermer le modal d'édition de tâche
-  function closeEditTaskModal() {
-    editTaskModal.style.display = 'none';
-    editingTaskId = null;
-  }
-  
-  // Sauvegarder les modifications d'une tâche
-  function saveEditedTask() {
-    if (!editingTaskId) return;
-    
-    const { id, category } = editingTaskId;
-    const task = tasks[category].find(t => t.id === id);
-    if (!task) return;
-    
-    // Récupérer les valeurs du formulaire
-    const title = document.getElementById('task-title').value;
-    const time = document.getElementById('task-time').value;
-    const location = document.getElementById('task-location').value;
-    
-    // Récupérer les étiquettes
-    const durationBtn = document.querySelector('.tag-btn[data-tag="duration"].active');
-    const difficultyBtn = document.querySelector('.tag-btn[data-tag="difficulty"].active');
-    
-    const duration = durationBtn ? durationBtn.dataset.value : null;
-    const difficulty = difficultyBtn ? difficultyBtn.dataset.value : null;
-    
-    // Récupérer la répétition
-    const repetitionTotal = parseInt(document.getElementById('repetition-total').value) || 0;
-    
-    // Récupérer le timer
-    const timer = parseInt(document.getElementById('task-timer').value) || 0;
-    
-    // Mettre à jour la tâche
-    task.title = title;
-    task.time = time;
-    task.location = location;
-    task.tags = {
-      duration,
-      difficulty
-    };
-    task.repetition = {
-      total: repetitionTotal,
-      done: task.repetition ? Math.min(task.repetition.done, repetitionTotal) : 0
-    };
-    task.timer = timer;
-    
-    // Sauvegarder et mettre à jour l'affichage
-    saveTasksToLocalStorage();
-    updateAllViews();
-    
-    // Fermer le modal
-    closeEditTaskModal();
-  }
-  
-  // Supprimer une tâche
-  function deleteTask(taskId, category) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
-    
-    // Filtrer la tâche
-    tasks[category] = tasks[category].filter(t => t.id !== taskId);
-    
-    // Sauvegarder et mettre à jour l'affichage
-    saveTasksToLocalStorage();
-    updateAllViews();
+  // Formater une date au format ISO (YYYY-MM-DD)
+  function formatDate(date) {
+    const d = new Date(date);
+    return d.toISOString().split('T')[0];
   }
   
   // Ajouter une tâche rapidement
   function quickAddTask(title, category) {
     if (!title.trim()) return;
-    const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
+    
+    // Vérifier si l'utilisateur est connecté
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
+                        TodoFirebaseManager.isUserLoggedIn && 
+                        TodoFirebaseManager.isUserLoggedIn();
+    
     console.log('[quickAddTask] Catégorie:', category, 'Titre:', title, 'Connecté:', isConnected);
 
     // Formater la date au format ISO (YYYY-MM-DD)
-    function formatDate(date) {
-      const d = new Date(date);
-      return d.toISOString().split('T')[0];
-    }
     const today = formatDate(new Date());
 
     // Créer une nouvelle tâche
@@ -818,15 +787,39 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(result => {
           console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
           if (result.success) {
-            alert('Tâche synchronisée avec Firestore !');
-            // Optionnel : recharger les tâches depuis Firestore ici
+            // Mettre à jour l'ID local avec l'ID Firestore
+            newTask.id = result.id;
+            
+            // Ajouter à la liste locale
+            tasks[category].push(newTask);
+            
+            // Sauvegarder dans localStorage
+            saveTasksToLocalStorage();
+            
+            // Mettre à jour l'affichage
+            updateAllViews();
+            
+            // Recharger depuis Firestore pour s'assurer de la synchronisation
+            setTimeout(() => {
+              loadTasksFromFirestore().then(() => {
+                updateAllViews();
+              });
+            }, 1000);
           } else {
             alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
+            // Ajouter en local en cas d'échec
+            tasks[category].push(newTask);
+            saveTasksToLocalStorage();
+            updateAllViews();
           }
         })
         .catch(error => {
           console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
           alert('Erreur lors de l\'ajout Firestore: ' + error.message);
+          // Ajouter en local en cas d'erreur
+          tasks[category].push(newTask);
+          saveTasksToLocalStorage();
+          updateAllViews();
         });
     } else {
       // Ajout local
@@ -837,37 +830,242 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Générer un ID unique
-  function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-  
-  // Mettre à jour toutes les vues
-  function updateAllViews() {
-    const activeView = document.querySelector('.view-btn.active')?.dataset.view;
+  // Supprimer une tâche
+  function deleteTask(taskId, category) {
+    // Vérifier si l'utilisateur est connecté
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
+                        TodoFirebaseManager.isUserLoggedIn && 
+                        TodoFirebaseManager.isUserLoggedIn();
     
-    if (activeView === 'daily') {
-      updateDailyDisplay();
-    } else if (activeView === 'weekly') {
-      updateWeeklyDisplay();
-    } else if (activeView === 'punctual') {
-      updatePunctualDisplay();
-    } else if (activeView === 'general') {
-      updateGeneralView();
+    // Trouver l'index de la tâche
+    const taskIndex = tasks[category].findIndex(task => task.id === taskId);
+    
+    if (taskIndex === -1) return;
+    
+    // Demander confirmation
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+      return;
+    }
+    
+    if (isConnected) {
+      // Suppression Firestore
+      TodoFirebaseManager.deleteTask(category, taskId)
+        .then(result => {
+          if (result.success) {
+            // Supprimer de la liste locale
+            tasks[category].splice(taskIndex, 1);
+            saveTasksToLocalStorage();
+            updateAllViews();
+          } else {
+            alert('Erreur lors de la suppression Firestore: ' + (result.error?.message || result.error));
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors de la suppression Firestore:', error);
+          alert('Erreur lors de la suppression Firestore: ' + error.message);
+        });
+    } else {
+      // Suppression locale
+      tasks[category].splice(taskIndex, 1);
+      saveTasksToLocalStorage();
+      updateAllViews();
     }
   }
   
-  // Charger les tâches depuis le localStorage
-  function loadTasksFromLocalStorage() {
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      tasks = JSON.parse(savedTasks);
+  // Basculer l'état de complétion d'une tâche
+  function toggleTaskCompletion(taskId, category) {
+    // Vérifier si l'utilisateur est connecté
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
+                        TodoFirebaseManager.isUserLoggedIn && 
+                        TodoFirebaseManager.isUserLoggedIn();
+    
+    // Trouver la tâche
+    const taskIndex = tasks[category].findIndex(task => task.id === taskId);
+    
+    if (taskIndex === -1) return;
+    
+    const task = tasks[category][taskIndex];
+    
+    // Gérer les tâches avec répétition
+    if (task.repetition && task.repetition.total > 0) {
+      // Incrémenter le compteur de répétition
+      task.repetition.done = (task.repetition.done + 1) % (task.repetition.total + 1);
+      
+      // Mettre à jour l'état de complétion
+      task.completed = task.repetition.done >= task.repetition.total;
+    } else {
+      // Basculer l'état de complétion
+      task.completed = !task.completed;
     }
+    
+    if (isConnected) {
+      // Mise à jour Firestore
+      if (task.repetition && task.repetition.total > 0) {
+        TodoFirebaseManager.updateTaskRepetition(category, taskId, task.repetition)
+          .then(result => {
+            if (!result.success) {
+              alert('Erreur lors de la mise à jour de la répétition: ' + (result.error?.message || result.error));
+            }
+          })
+          .catch(error => {
+            console.error('Erreur lors de la mise à jour de la répétition:', error);
+            alert('Erreur lors de la mise à jour de la répétition: ' + error.message);
+          });
+      } else {
+        TodoFirebaseManager.toggleTaskCompletion(category, taskId, task.completed)
+          .then(result => {
+            if (!result.success) {
+              alert('Erreur lors de la mise à jour de l\'état: ' + (result.error?.message || result.error));
+            }
+          })
+          .catch(error => {
+            console.error('Erreur lors de la mise à jour de l\'état:', error);
+            alert('Erreur lors de la mise à jour de l\'état: ' + error.message);
+          });
+      }
+    }
+    
+    // Mise à jour locale
+    tasks[category][taskIndex] = task;
+    saveTasksToLocalStorage();
+    updateAllViews();
   }
   
-  // Sauvegarder les tâches dans le localStorage
-  function saveTasksToLocalStorage() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+  // Ouvrir le modal d'édition de tâche
+  function openEditTaskModal(taskId, category) {
+    // Trouver la tâche
+    const task = tasks[category].find(task => task.id === taskId);
+    
+    if (!task) return;
+    
+    // Stocker l'ID de la tâche en cours d'édition
+    editingTaskId = taskId;
+    
+    // Remplir le formulaire avec les données de la tâche
+    document.getElementById('task-title').value = task.title;
+    document.getElementById('task-time').value = task.time || '';
+    document.getElementById('task-location').value = task.location || '';
+    document.getElementById('repetition-total').value = task.repetition ? task.repetition.total : 0;
+    document.getElementById('task-timer').value = task.timer || 0;
+    
+    // Réinitialiser les étiquettes
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Activer les étiquettes sélectionnées
+    if (task.tags) {
+      if (task.tags.duration) {
+        const durationBtn = document.querySelector(`.tag-btn[data-tag="duration"][data-value="${task.tags.duration}"]`);
+        if (durationBtn) durationBtn.classList.add('active');
+      }
+      
+      if (task.tags.difficulty) {
+        const difficultyBtn = document.querySelector(`.tag-btn[data-tag="difficulty"][data-value="${task.tags.difficulty}"]`);
+        if (difficultyBtn) difficultyBtn.classList.add('active');
+      }
+    }
+    
+    // Afficher le modal
+    editTaskModal.style.display = 'flex';
+  }
+  
+  // Fermer le modal d'édition de tâche
+  function closeEditTaskModal() {
+    editTaskModal.style.display = 'none';
+    editingTaskId = null;
+  }
+  
+  // Sauvegarder les modifications d'une tâche
+  function saveEditedTask() {
+    if (!editingTaskId) return;
+    
+    // Vérifier si l'utilisateur est connecté
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
+                        TodoFirebaseManager.isUserLoggedIn && 
+                        TodoFirebaseManager.isUserLoggedIn();
+    
+    // Trouver la catégorie de la tâche
+    let taskCategory = null;
+    let taskIndex = -1;
+    
+    for (const category in tasks) {
+      const index = tasks[category].findIndex(task => task.id === editingTaskId);
+      if (index !== -1) {
+        taskCategory = category;
+        taskIndex = index;
+        break;
+      }
+    }
+    
+    if (!taskCategory || taskIndex === -1) {
+      closeEditTaskModal();
+      return;
+    }
+    
+    // Récupérer les valeurs du formulaire
+    const title = document.getElementById('task-title').value;
+    const time = document.getElementById('task-time').value;
+    const location = document.getElementById('task-location').value;
+    const repetitionTotal = parseInt(document.getElementById('repetition-total').value) || 0;
+    const timer = parseInt(document.getElementById('task-timer').value) || 0;
+    
+    // Récupérer les étiquettes sélectionnées
+    const tags = {};
+    
+    const activeDurationBtn = document.querySelector('.tag-btn[data-tag="duration"].active');
+    if (activeDurationBtn) {
+      tags.duration = activeDurationBtn.dataset.value;
+    }
+    
+    const activeDifficultyBtn = document.querySelector('.tag-btn[data-tag="difficulty"].active');
+    if (activeDifficultyBtn) {
+      tags.difficulty = activeDifficultyBtn.dataset.value;
+    }
+    
+    // Mettre à jour la tâche
+    const task = tasks[taskCategory][taskIndex];
+    
+    // Sauvegarder l'état de complétion et la répétition actuelle
+    const completed = task.completed;
+    const repetitionDone = task.repetition ? task.repetition.done : 0;
+    
+    // Mettre à jour les données de la tâche
+    task.title = title;
+    task.time = time;
+    task.location = location;
+    task.tags = tags;
+    task.repetition = {
+      total: repetitionTotal,
+      done: Math.min(repetitionDone, repetitionTotal)
+    };
+    task.timer = timer;
+    
+    if (isConnected) {
+      // Mise à jour Firestore
+      TodoFirebaseManager.updateTask(taskCategory, editingTaskId, task)
+        .then(result => {
+          if (result.success) {
+            // Mise à jour locale
+            tasks[taskCategory][taskIndex] = task;
+            saveTasksToLocalStorage();
+            updateAllViews();
+            closeEditTaskModal();
+          } else {
+            alert('Erreur lors de la mise à jour Firestore: ' + (result.error?.message || result.error));
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors de la mise à jour Firestore:', error);
+          alert('Erreur lors de la mise à jour Firestore: ' + error.message);
+        });
+    } else {
+      // Mise à jour locale
+      tasks[taskCategory][taskIndex] = task;
+      saveTasksToLocalStorage();
+      updateAllViews();
+      closeEditTaskModal();
+    }
   }
   
   // Réinitialiser les tâches quotidiennes à minuit
@@ -876,20 +1074,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const night = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate() + 1, // demain
-      0, 0, 0 // minuit
+      now.getDate() + 1, // Demain
+      0, 0, 0 // Minuit
     );
     
     const msToMidnight = night.getTime() - now.getTime();
     
-    // Programmer la réinitialisation
     setTimeout(() => {
-      // Réinitialiser et reprogrammer pour le jour suivant
+      // Réinitialiser la date courante
+      currentDailyDate = new Date();
+      
+      // Mettre à jour l'affichage si la vue quotidienne est active
+      const activeView = document.querySelector('.view-btn.active');
+      if (activeView && activeView.dataset.view === 'daily') {
+        updateDailyDisplay();
+      }
+      
+      // Réinitialiser pour le jour suivant
       resetDailyTasksAtMidnight();
     }, msToMidnight);
-  }
-
-  function clearLocalTasks() {
-    localStorage.removeItem('tasks');
   }
 });
