@@ -12,6 +12,9 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Suppression de l'import de authState pour éviter l'injection de l'interface d'authentification
+// import { authState } from './auth.js';
+
 // État d'authentification simplifié pour éviter la dépendance à auth.js
 const authStateSimple = {
   isAuthenticated: false,
@@ -438,4 +441,4 @@ class TodoFirebaseManager {
   }
 }
 
-export { TodoFirebaseManager }; 
+export { TodoFirebaseManager };
