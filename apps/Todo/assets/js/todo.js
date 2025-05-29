@@ -67,6 +67,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
+  // Charger les tâches depuis Firestore
+  async function loadTasksFromFirestore() {
+    console.log("Chargement des tâches depuis Firestore...");
+    
+    try {
+      // Récupérer toutes les tâches depuis Firestore
+      const result = await TodoFirebaseManager.syncTasksFromFirebase();
+      
+      if (result.success) {
+        console.log("Tâches récupérées depuis Firestore:", result);
+        
+        // Mettre à jour les tâches locales avec les données Firestore
+        if (result.results.daily && result.results.daily.success) {
+          tasks.daily = result.results.daily.data || [];
+        }
+        
+        if (result.results.weekly && result.results.weekly.success) {
+          tasks.weekly = result.results.weekly.data || [];
+        }
+        
+        if (result.results.punctual && result.results.punctual.success) {
+          tasks.punctual = result.results.punctual.data || [];
+        }
+        
+        if (result.results.general && result.results.general.success) {
+          tasks.general = result.results.general.data || [];
+        }
+        
+        console.log("Tâches mises à jour depuis Firestore:", tasks);
+        return true;
+      } else {
+        console.error("Erreur lors de la récupération des tâches depuis Firestore:", result.error);
+        // Fallback sur localStorage
+        loadTasksFromLocalStorage();
+        return false;
+      }
+    } catch (error) {
+      console.error("Exception lors du chargement des tâches depuis Firestore:", error);
+      // Fallback sur localStorage
+      loadTasksFromLocalStorage();
+      return false;
+    }
+  }
+  
   // Initialiser le thème
   function initTheme() {
     // Vérifier si un thème est sauvegardé dans localStorage
@@ -859,9 +903,30 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Charger les tâches depuis le localStorage
   function loadTasksFromLocalStorage() {
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      tasks = JSON.parse(savedTasks);
+    console.log("Chargement des tâches depuis localStorage...");
+    
+    // Charger les tâches quotidiennes
+    const savedDailyTasks = localStorage.getItem('dailyTasks');
+    if (savedDailyTasks) {
+      tasks.daily = JSON.parse(savedDailyTasks);
+    }
+    
+    // Charger les tâches hebdomadaires
+    const savedWeeklyTasks = localStorage.getItem('weeklyTasks');
+    if (savedWeeklyTasks) {
+      tasks.weekly = JSON.parse(savedWeeklyTasks);
+    }
+    
+    // Charger les tâches ponctuelles
+    const savedPunctualTasks = localStorage.getItem('punctualTasks');
+    if (savedPunctualTasks) {
+      tasks.punctual = JSON.parse(savedPunctualTasks);
+    }
+    
+    // Charger les tâches générales
+    const savedGeneralTasks = localStorage.getItem('generalTasks');
+    if (savedGeneralTasks) {
+      tasks.general = JSON.parse(savedGeneralTasks);
     }
   }
   

@@ -1,4 +1,105 @@
-// Modification de todo.js pour synchroniser avec Firestore
+// Déclaration des fonctions en dehors du bloc DOMContentLoaded pour éviter les problèmes de portée
+// Charger les tâches depuis Firestore
+async function loadTasksFromFirestore() {
+  console.log("Chargement des tâches depuis Firestore...");
+  
+  try {
+    // Récupérer toutes les tâches depuis Firestore
+    const result = await TodoFirebaseManager.syncTasksFromFirebase();
+    
+    if (result.success) {
+      console.log("Tâches récupérées depuis Firestore:", result);
+      
+      // Mettre à jour les tâches locales avec les données Firestore
+      if (result.results.daily && result.results.daily.success) {
+        window.tasks.daily = result.results.daily.data || [];
+      }
+      
+      if (result.results.weekly && result.results.weekly.success) {
+        window.tasks.weekly = result.results.weekly.data || [];
+      }
+      
+      if (result.results.punctual && result.results.punctual.success) {
+        window.tasks.punctual = result.results.punctual.data || [];
+      }
+      
+      if (result.results.general && result.results.general.success) {
+        window.tasks.general = result.results.general.data || [];
+      }
+      
+      console.log("Tâches mises à jour depuis Firestore:", window.tasks);
+      return true;
+    } else {
+      console.error("Erreur lors de la récupération des tâches depuis Firestore:", result.error);
+      // Fallback sur localStorage
+      loadTasksFromLocalStorage();
+      return false;
+    }
+  } catch (error) {
+    console.error("Exception lors du chargement des tâches depuis Firestore:", error);
+    // Fallback sur localStorage
+    loadTasksFromLocalStorage();
+    return false;
+  }
+}
+
+// Charger les tâches depuis le localStorage
+function loadTasksFromLocalStorage() {
+  console.log("Chargement des tâches depuis localStorage...");
+  
+  // Charger les tâches quotidiennes
+  const savedDailyTasks = localStorage.getItem('dailyTasks');
+  if (savedDailyTasks) {
+    window.tasks.daily = JSON.parse(savedDailyTasks);
+  }
+  
+  // Charger les tâches hebdomadaires
+  const savedWeeklyTasks = localStorage.getItem('weeklyTasks');
+  if (savedWeeklyTasks) {
+    window.tasks.weekly = JSON.parse(savedWeeklyTasks);
+  }
+  
+  // Charger les tâches ponctuelles
+  const savedPunctualTasks = localStorage.getItem('punctualTasks');
+  if (savedPunctualTasks) {
+    window.tasks.punctual = JSON.parse(savedPunctualTasks);
+  }
+  
+  // Charger les tâches générales
+  const savedGeneralTasks = localStorage.getItem('generalTasks');
+  if (savedGeneralTasks) {
+    window.tasks.general = JSON.parse(savedGeneralTasks);
+  }
+}
+
+// Initialiser avec vérification d'authentification
+function initializeWithAuthCheck() {
+  const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
+                      TodoFirebaseManager.isUserLoggedIn && 
+                      TodoFirebaseManager.isUserLoggedIn();
+  
+  console.log("Initialisation avec vérification d'authentification - Connecté:", isConnected);
+  
+  if (isConnected) {
+    // Utilisateur connecté, charger depuis Firestore
+    loadTasksFromFirestore().then(() => {
+      updateAllViews();
+    });
+  } else {
+    // Utilisateur non connecté, charger depuis localStorage
+    loadTasksFromLocalStorage();
+    updateAllViews();
+  }
+}
+
+// Initialisation globale des variables
+window.tasks = {
+  daily: [],
+  weekly: [],
+  punctual: [],
+  general: []
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('To-Do script loaded');
 
@@ -7,12 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentWeeklyDate = new Date();
   let currentPunctualDate = new Date();
   let editingTaskId = null;
-  let tasks = {
-    daily: [],
-    weekly: [],
-    punctual: [],
-    general: []
-  };
+  
+  // Rendre les variables accessibles globalement
+  window.currentDailyDate = currentDailyDate;
+  window.currentWeeklyDate = currentWeeklyDate;
+  window.currentPunctualDate = currentPunctualDate;
+  window.editingTaskId = editingTaskId;
   
   // Sélection des éléments DOM
   const viewButtons = document.querySelectorAll('.view-btn');
@@ -42,109 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialiser le thème
   initTheme();
+  
+  // Mettre à jour toutes les vues
+  updateAllViews();
 
   // ===== FONCTIONS D'INITIALISATION =====
-  
-  // Initialiser avec vérification d'authentification
-  function initializeWithAuthCheck() {
-    const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
-                        TodoFirebaseManager.isUserLoggedIn && 
-                        TodoFirebaseManager.isUserLoggedIn();
-    
-    console.log("Initialisation avec vérification d'authentification - Connecté:", isConnected);
-    
-    if (isConnected) {
-      // Utilisateur connecté, charger depuis Firestore
-      loadTasksFromFirestore().then(() => {
-        updateAllViews();
-      });
-    } else {
-      // Utilisateur non connecté, charger depuis localStorage
-      loadTasksFromLocalStorage();
-      updateAllViews();
-    }
-  }
-  
-  // Charger les tâches depuis Firestore
-  async function loadTasksFromFirestore() {
-    console.log("Chargement des tâches depuis Firestore...");
-    
-    try {
-      // Récupérer toutes les tâches depuis Firestore
-      const result = await TodoFirebaseManager.syncTasksFromFirebase();
-      
-      if (result.success) {
-        console.log("Tâches récupérées depuis Firestore:", result);
-        
-        // Mettre à jour les tâches locales avec les données Firestore
-        if (result.results.daily && result.results.daily.success) {
-          tasks.daily = result.results.daily.data || [];
-        }
-        
-        if (result.results.weekly && result.results.weekly.success) {
-          tasks.weekly = result.results.weekly.data || [];
-        }
-        
-        if (result.results.punctual && result.results.punctual.success) {
-          tasks.punctual = result.results.punctual.data || [];
-        }
-        
-        if (result.results.general && result.results.general.success) {
-          tasks.general = result.results.general.data || [];
-        }
-        
-        console.log("Tâches mises à jour depuis Firestore:", tasks);
-        return true;
-      } else {
-        console.error("Erreur lors de la récupération des tâches depuis Firestore:", result.error);
-        // Fallback sur localStorage
-        loadTasksFromLocalStorage();
-        return false;
-      }
-    } catch (error) {
-      console.error("Exception lors du chargement des tâches depuis Firestore:", error);
-      // Fallback sur localStorage
-      loadTasksFromLocalStorage();
-      return false;
-    }
-  }
-  
-  // Charger les tâches depuis le localStorage
-  function loadTasksFromLocalStorage() {
-    console.log("Chargement des tâches depuis localStorage...");
-    
-    // Charger les tâches quotidiennes
-    const savedDailyTasks = localStorage.getItem('dailyTasks');
-    if (savedDailyTasks) {
-      tasks.daily = JSON.parse(savedDailyTasks);
-    }
-    
-    // Charger les tâches hebdomadaires
-    const savedWeeklyTasks = localStorage.getItem('weeklyTasks');
-    if (savedWeeklyTasks) {
-      tasks.weekly = JSON.parse(savedWeeklyTasks);
-    }
-    
-    // Charger les tâches ponctuelles
-    const savedPunctualTasks = localStorage.getItem('punctualTasks');
-    if (savedPunctualTasks) {
-      tasks.punctual = JSON.parse(savedPunctualTasks);
-    }
-    
-    // Charger les tâches générales
-    const savedGeneralTasks = localStorage.getItem('generalTasks');
-    if (savedGeneralTasks) {
-      tasks.general = JSON.parse(savedGeneralTasks);
-    }
-  }
-  
-  // Sauvegarder les tâches dans le localStorage
-  function saveTasksToLocalStorage() {
-    localStorage.setItem('dailyTasks', JSON.stringify(tasks.daily));
-    localStorage.setItem('weeklyTasks', JSON.stringify(tasks.weekly));
-    localStorage.setItem('punctualTasks', JSON.stringify(tasks.punctual));
-    localStorage.setItem('generalTasks', JSON.stringify(tasks.general));
-  }
   
   // Initialiser le thème
   function initTheme() {
@@ -425,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Mettre à jour toutes les vues
-  function updateAllViews() {
+  window.updateAllViews = function() {
     const activeView = document.querySelector('.view-btn.active');
     if (activeView) {
       switchView(activeView.dataset.view);
@@ -460,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dailyTasksList.innerHTML = '';
     
     // Filtrer les tâches du jour courant
-    const dailyTasks = tasks.daily.filter(task => {
+    const dailyTasks = window.tasks.daily.filter(task => {
       const taskDate = new Date(task.date);
       return isSameDay(taskDate, currentDailyDate);
     });
@@ -495,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     
-    const weeklyTasks = tasks.weekly.filter(task => {
+    const weeklyTasks = window.tasks.weekly.filter(task => {
       const taskDate = new Date(task.date);
       return taskDate >= startOfWeek && taskDate <= endOfWeek;
     });
@@ -526,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     punctualTasksList.innerHTML = '';
     
     // Trier les tâches : non terminées d'abord, puis terminées
-    const sortedTasks = [...tasks.punctual].sort((a, b) => {
+    const sortedTasks = [...window.tasks.punctual].sort((a, b) => {
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
       return 0;
@@ -552,9 +555,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Combiner toutes les tâches
     const allTasks = [
-      ...tasks.daily.map(task => ({ ...task, category: 'daily' })),
-      ...tasks.weekly.map(task => ({ ...task, category: 'weekly' })),
-      ...tasks.punctual.map(task => ({ ...task, category: 'punctual' }))
+      ...window.tasks.daily.map(task => ({ ...task, category: 'daily' })),
+      ...window.tasks.weekly.map(task => ({ ...task, category: 'weekly' })),
+      ...window.tasks.punctual.map(task => ({ ...task, category: 'punctual' }))
     ];
     
     // Trier par date et par état (non terminées d'abord)
@@ -605,14 +608,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const newOrder = [];
     taskElements.forEach(element => {
       const taskId = element.dataset.id;
-      const task = tasks[category].find(t => t.id === taskId);
+      const task = window.tasks[category].find(t => t.id === taskId);
       if (task) {
         newOrder.push(task);
       }
     });
     
     // Mettre à jour la liste des tâches
-    tasks[category] = newOrder;
+    window.tasks[category] = newOrder;
     
     // Sauvegarder dans le localStorage
     saveTasksToLocalStorage();
@@ -752,6 +755,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return d.toISOString().split('T')[0];
   }
   
+  // Sauvegarder les tâches dans le localStorage
+  function saveTasksToLocalStorage() {
+    localStorage.setItem('dailyTasks', JSON.stringify(window.tasks.daily));
+    localStorage.setItem('weeklyTasks', JSON.stringify(window.tasks.weekly));
+    localStorage.setItem('punctualTasks', JSON.stringify(window.tasks.punctual));
+    localStorage.setItem('generalTasks', JSON.stringify(window.tasks.general));
+  }
+  
   // Ajouter une tâche rapidement
   function quickAddTask(title, category) {
     if (!title.trim()) return;
@@ -791,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newTask.id = result.id;
             
             // Ajouter à la liste locale
-            tasks[category].push(newTask);
+            window.tasks[category].push(newTask);
             
             // Sauvegarder dans localStorage
             saveTasksToLocalStorage();
@@ -808,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
             // Ajouter en local en cas d'échec
-            tasks[category].push(newTask);
+            window.tasks[category].push(newTask);
             saveTasksToLocalStorage();
             updateAllViews();
           }
@@ -817,13 +828,13 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
           alert('Erreur lors de l\'ajout Firestore: ' + error.message);
           // Ajouter en local en cas d'erreur
-          tasks[category].push(newTask);
+          window.tasks[category].push(newTask);
           saveTasksToLocalStorage();
           updateAllViews();
         });
     } else {
       // Ajout local
-      tasks[category].push(newTask);
+      window.tasks[category].push(newTask);
       saveTasksToLocalStorage();
       updateAllViews();
       alert('Tâche ajoutée en local (mode invité)');
@@ -838,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         TodoFirebaseManager.isUserLoggedIn();
     
     // Trouver l'index de la tâche
-    const taskIndex = tasks[category].findIndex(task => task.id === taskId);
+    const taskIndex = window.tasks[category].findIndex(task => task.id === taskId);
     
     if (taskIndex === -1) return;
     
@@ -853,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(result => {
           if (result.success) {
             // Supprimer de la liste locale
-            tasks[category].splice(taskIndex, 1);
+            window.tasks[category].splice(taskIndex, 1);
             saveTasksToLocalStorage();
             updateAllViews();
           } else {
@@ -866,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
       // Suppression locale
-      tasks[category].splice(taskIndex, 1);
+      window.tasks[category].splice(taskIndex, 1);
       saveTasksToLocalStorage();
       updateAllViews();
     }
@@ -880,11 +891,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         TodoFirebaseManager.isUserLoggedIn();
     
     // Trouver la tâche
-    const taskIndex = tasks[category].findIndex(task => task.id === taskId);
+    const taskIndex = window.tasks[category].findIndex(task => task.id === taskId);
     
     if (taskIndex === -1) return;
     
-    const task = tasks[category][taskIndex];
+    const task = window.tasks[category][taskIndex];
     
     // Gérer les tâches avec répétition
     if (task.repetition && task.repetition.total > 0) {
@@ -926,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Mise à jour locale
-    tasks[category][taskIndex] = task;
+    window.tasks[category][taskIndex] = task;
     saveTasksToLocalStorage();
     updateAllViews();
   }
@@ -934,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ouvrir le modal d'édition de tâche
   function openEditTaskModal(taskId, category) {
     // Trouver la tâche
-    const task = tasks[category].find(task => task.id === taskId);
+    const task = window.tasks[category].find(task => task.id === taskId);
     
     if (!task) return;
     
@@ -989,8 +1000,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let taskCategory = null;
     let taskIndex = -1;
     
-    for (const category in tasks) {
-      const index = tasks[category].findIndex(task => task.id === editingTaskId);
+    for (const category in window.tasks) {
+      const index = window.tasks[category].findIndex(task => task.id === editingTaskId);
       if (index !== -1) {
         taskCategory = category;
         taskIndex = index;
@@ -1024,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Mettre à jour la tâche
-    const task = tasks[taskCategory][taskIndex];
+    const task = window.tasks[taskCategory][taskIndex];
     
     // Sauvegarder l'état de complétion et la répétition actuelle
     const completed = task.completed;
@@ -1047,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(result => {
           if (result.success) {
             // Mise à jour locale
-            tasks[taskCategory][taskIndex] = task;
+            window.tasks[taskCategory][taskIndex] = task;
             saveTasksToLocalStorage();
             updateAllViews();
             closeEditTaskModal();
@@ -1061,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
       // Mise à jour locale
-      tasks[taskCategory][taskIndex] = task;
+      window.tasks[taskCategory][taskIndex] = task;
       saveTasksToLocalStorage();
       updateAllViews();
       closeEditTaskModal();
