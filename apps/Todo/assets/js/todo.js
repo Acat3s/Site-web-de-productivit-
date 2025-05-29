@@ -817,30 +817,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Supprimer une tâche
-  function deleteTask(taskId, category) {
+  async function deleteTask(taskId, category) {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
-    
-    // Filtrer la tâche
-    tasks[category] = tasks[category].filter(t => t.id !== taskId);
-    
-    // Sauvegarder et mettre à jour l'affichage
-    saveTasksToLocalStorage();
-    updateAllViews();
+    const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
+    if (isConnected) {
+      try {
+        // Supprimer la tâche dans Firestore
+        console.log(`Suppression de la tâche ${taskId} dans Firestore...`);
+        const result = await TodoFirebaseManager.deleteTask(category, taskId);
+        if (result.success) {
+          console.log(`Tâche ${taskId} supprimée avec succès dans Firestore`);
+          // Recharger les tâches depuis Firestore pour s'assurer de la synchronisation
+          await loadTasksFromFirestore();
+          // Mettre à jour l'affichage
+          updateAllViews();
+        } else {
+          console.error(`Erreur lors de la suppression de la tâche ${taskId} dans Firestore:`, result.error);
+          alert(`Erreur lors de la suppression de la tâche: ${result.error?.message || result.error}`);
+        }
+      } catch (error) {
+        console.error(`Exception lors de la suppression de la tâche ${taskId}:`, error);
+        alert(`Erreur lors de la suppression de la tâche: ${error.message}`);
+      }
+    } else {
+      // Suppression locale uniquement
+      tasks[category] = tasks[category].filter(t => t.id !== taskId);
+      // Sauvegarder et mettre à jour l'affichage
+      saveTasksToLocalStorage();
+      updateAllViews();
+    }
   }
   
   // Ajouter une tâche rapidement
-  function quickAddTask(title, category) {
+  async function quickAddTask(title, category) {
     if (!title.trim()) return;
     const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
     console.log('[quickAddTask] Catégorie:', category, 'Titre:', title, 'Connecté:', isConnected);
-
     // Formater la date au format ISO (YYYY-MM-DD)
     function formatDate(date) {
       const d = new Date(date);
       return d.toISOString().split('T')[0];
     }
     const today = formatDate(new Date());
-
     // Créer une nouvelle tâche
     const newTask = {
       id: generateId(),
@@ -855,29 +873,38 @@ document.addEventListener('DOMContentLoaded', () => {
       timer: 0
     };
     console.log('[quickAddTask] Données de la tâche à ajouter:', newTask);
-
     if (isConnected) {
-      // Ajout Firestore
-      TodoFirebaseManager.addTask(category, newTask)
-        .then(result => {
-          console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
-          if (result.success) {
-            alert('Tâche synchronisée avec Firestore !');
-            // Optionnel : recharger les tâches depuis Firestore ici
-          } else {
-            alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
-          }
-        })
-        .catch(error => {
-          console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
-          alert('Erreur lors de l\'ajout Firestore: ' + error.message);
-        });
+      try {
+        // Ajout Firestore
+        const result = await TodoFirebaseManager.addTask(category, newTask);
+        console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
+        if (result.success) {
+          console.log('Tâche ajoutée avec succès dans Firestore');
+          // Recharger immédiatement les tâches depuis Firestore
+          await loadTasksFromFirestore();
+          // Mettre à jour l'affichage
+          updateAllViews();
+        } else {
+          console.error('Erreur lors de l\'ajout Firestore:', result.error);
+          alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
+          // Ajouter localement en cas d'échec Firestore
+          tasks[category].push(newTask);
+          saveTasksToLocalStorage();
+          updateAllViews();
+        }
+      } catch (error) {
+        console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
+        alert('Erreur lors de l\'ajout Firestore: ' + error.message);
+        // Ajouter localement en cas d'exception
+        tasks[category].push(newTask);
+        saveTasksToLocalStorage();
+        updateAllViews();
+      }
     } else {
       // Ajout local
       tasks[category].push(newTask);
       saveTasksToLocalStorage();
       updateAllViews();
-      alert('Tâche ajoutée en local (mode invité)');
     }
   }
   
@@ -957,4 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearLocalTasks() {
     localStorage.removeItem('tasks');
   }
+
+  // Exposer certaines fonctions globalement pour les tests
+  window.loadTasksFromFirestore = loadTasksFromFirestore;
+  window.updateAllViews = updateAllViews;
 });
