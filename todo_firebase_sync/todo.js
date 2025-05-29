@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSortable(punctualTasksList, 'punctual');
   }
   
-  // Charger toutes les tâches (vue générale)
+  // Charger les tâches générales
   function loadGeneralTasks() {
     // Vider la liste
     const generalTasksList = document.getElementById('general-tasks');
@@ -698,10 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
   async function toggleTaskCompletion(taskId, category) {
     const task = tasks[category].find(t => t.id === taskId);
     if (!task) return;
+    
     if (task.repetition && task.repetition.total > 0) {
       // Pour les tâches avec répétition, incrémenter le compteur
       if (task.repetition.done < task.repetition.total) {
         task.repetition.done++;
+        
         // Si on atteint le total, marquer comme complétée
         if (task.repetition.done >= task.repetition.total) {
           task.completed = true;
@@ -715,15 +717,19 @@ document.addEventListener('DOMContentLoaded', () => {
       // Pour les tâches normales, basculer l'état
       task.completed = !task.completed;
     }
+    
     // Sauvegarder localement
     saveTasksToLocalStorage();
+    
     // Synchroniser avec Firebase si connecté
     const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
                         TodoFirebaseManager.isUserLoggedIn && 
                         TodoFirebaseManager.isUserLoggedIn();
+    
     if (isConnected) {
       try {
         console.log(`Mise à jour de l'état de complétion dans Firestore pour la tâche ${taskId}...`);
+        
         if (task.repetition && task.repetition.total > 0) {
           // Pour les tâches avec répétition, mettre à jour la répétition
           const result = await TodoFirebaseManager.updateTaskRepetition(category, taskId, task.repetition);
@@ -737,6 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(`Erreur lors de la mise à jour de l'état de complétion:`, error);
       }
     }
+    
     // Mettre à jour l'affichage
     updateAllViews();
   }
@@ -789,22 +796,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sauvegarder les modifications d'une tâche
   async function saveEditedTask() {
     if (!editingTaskId) return;
+    
     const { id, category } = editingTaskId;
     const task = tasks[category].find(t => t.id === id);
     if (!task) return;
+    
     // Récupérer les valeurs du formulaire
     const title = document.getElementById('task-title').value;
     const time = document.getElementById('task-time').value;
     const location = document.getElementById('task-location').value;
+    
     // Récupérer les étiquettes
     const durationBtn = document.querySelector('.tag-btn[data-tag="duration"].active');
     const difficultyBtn = document.querySelector('.tag-btn[data-tag="difficulty"].active');
+    
     const duration = durationBtn ? durationBtn.dataset.value : null;
     const difficulty = difficultyBtn ? difficultyBtn.dataset.value : null;
+    
     // Récupérer la répétition
     const repetitionTotal = parseInt(document.getElementById('repetition-total').value) || 0;
+    
     // Récupérer le timer
     const timer = parseInt(document.getElementById('task-timer').value) || 0;
+    
     // Mettre à jour la tâche
     task.title = title;
     task.time = time;
@@ -818,16 +832,20 @@ document.addEventListener('DOMContentLoaded', () => {
       done: task.repetition ? Math.min(task.repetition.done, repetitionTotal) : 0
     };
     task.timer = timer;
+    
     // Sauvegarder localement
     saveTasksToLocalStorage();
+    
     // Synchroniser avec Firebase si connecté
     const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
                         TodoFirebaseManager.isUserLoggedIn && 
                         TodoFirebaseManager.isUserLoggedIn();
+    
     if (isConnected) {
       try {
         console.log(`Mise à jour de la tâche ${id} dans Firestore...`);
         const result = await TodoFirebaseManager.updateTask(category, id, task);
+        
         if (result.success) {
           console.log(`Tâche ${id} mise à jour avec succès dans Firestore`);
         } else {
@@ -837,55 +855,39 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(`Exception lors de la mise à jour de la tâche ${id}:`, error);
       }
     }
+    
     // Mettre à jour l'affichage
     updateAllViews();
+    
     // Fermer le modal
     closeEditTaskModal();
   }
   
   // Supprimer une tâche
-  async function deleteTask(taskId, category) {
+  function deleteTask(taskId, category) {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) return;
-    const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
-    if (isConnected) {
-      try {
-        // Supprimer la tâche dans Firestore
-        console.log(`Suppression de la tâche ${taskId} dans Firestore...`);
-        const result = await TodoFirebaseManager.deleteTask(category, taskId);
-        if (result.success) {
-          console.log(`Tâche ${taskId} supprimée avec succès dans Firestore`);
-          // Recharger les tâches depuis Firestore pour s'assurer de la synchronisation
-          await loadTasksFromFirestore();
-          // Mettre à jour l'affichage
-          updateAllViews();
-        } else {
-          console.error(`Erreur lors de la suppression de la tâche ${taskId} dans Firestore:`, result.error);
-          alert(`Erreur lors de la suppression de la tâche: ${result.error?.message || result.error}`);
-        }
-      } catch (error) {
-        console.error(`Exception lors de la suppression de la tâche ${taskId}:`, error);
-        alert(`Erreur lors de la suppression de la tâche: ${error.message}`);
-      }
-    } else {
-      // Suppression locale uniquement
-      tasks[category] = tasks[category].filter(t => t.id !== taskId);
-      // Sauvegarder et mettre à jour l'affichage
-      saveTasksToLocalStorage();
-      updateAllViews();
-    }
+    
+    // Filtrer la tâche
+    tasks[category] = tasks[category].filter(t => t.id !== taskId);
+    
+    // Sauvegarder et mettre à jour l'affichage
+    saveTasksToLocalStorage();
+    updateAllViews();
   }
   
   // Ajouter une tâche rapidement
-  async function quickAddTask(title, category) {
+  function quickAddTask(title, category) {
     if (!title.trim()) return;
     const isConnected = typeof TodoFirebaseManager !== 'undefined' && TodoFirebaseManager.isUserLoggedIn && TodoFirebaseManager.isUserLoggedIn();
     console.log('[quickAddTask] Catégorie:', category, 'Titre:', title, 'Connecté:', isConnected);
+
     // Formater la date au format ISO (YYYY-MM-DD)
     function formatDate(date) {
       const d = new Date(date);
       return d.toISOString().split('T')[0];
     }
     const today = formatDate(new Date());
+
     // Créer une nouvelle tâche
     const newTask = {
       id: generateId(),
@@ -900,38 +902,29 @@ document.addEventListener('DOMContentLoaded', () => {
       timer: 0
     };
     console.log('[quickAddTask] Données de la tâche à ajouter:', newTask);
+
     if (isConnected) {
-      try {
-        // Ajout Firestore
-        const result = await TodoFirebaseManager.addTask(category, newTask);
-        console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
-        if (result.success) {
-          console.log('Tâche ajoutée avec succès dans Firestore');
-          // Recharger immédiatement les tâches depuis Firestore
-          await loadTasksFromFirestore();
-          // Mettre à jour l'affichage
-          updateAllViews();
-        } else {
-          console.error('Erreur lors de l\'ajout Firestore:', result.error);
-          alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
-          // Ajouter localement en cas d'échec Firestore
-          tasks[category].push(newTask);
-          saveTasksToLocalStorage();
-          updateAllViews();
-        }
-      } catch (error) {
-        console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
-        alert('Erreur lors de l\'ajout Firestore: ' + error.message);
-        // Ajouter localement en cas d'exception
-        tasks[category].push(newTask);
-        saveTasksToLocalStorage();
-        updateAllViews();
-      }
+      // Ajout Firestore
+      TodoFirebaseManager.addTask(category, newTask)
+        .then(result => {
+          console.log('[quickAddTask] Résultat de l\'ajout Firestore:', result);
+          if (result.success) {
+            alert('Tâche synchronisée avec Firestore !');
+            // Optionnel : recharger les tâches depuis Firestore ici
+          } else {
+            alert('Erreur lors de l\'ajout Firestore: ' + (result.error?.message || result.error));
+          }
+        })
+        .catch(error => {
+          console.error('[quickAddTask] Erreur lors de l\'ajout Firestore:', error);
+          alert('Erreur lors de l\'ajout Firestore: ' + error.message);
+        });
     } else {
       // Ajout local
       tasks[category].push(newTask);
       saveTasksToLocalStorage();
       updateAllViews();
+      alert('Tâche ajoutée en local (mode invité)');
     }
   }
   
@@ -1011,8 +1004,4 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearLocalTasks() {
     localStorage.removeItem('tasks');
   }
-
-  // Exposer certaines fonctions globalement pour les tests
-  window.loadTasksFromFirestore = loadTasksFromFirestore;
-  window.updateAllViews = updateAllViews;
 });
