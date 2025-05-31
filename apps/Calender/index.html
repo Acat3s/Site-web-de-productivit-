@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier - ProductivityHub</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/calendrier.css">
+  <link rel="stylesheet" href="assets/css/header.css">
+  <link rel="stylesheet" href="assets/css/calendrier_papier.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="header-top">
+        <a href="../../index.html" class="back-button">
+          <i class="fas fa-arrow-left"></i> Menu
+        </a>
+        <h1 class="title">Calendrier</h1>
+        <button class="theme-toggle" id="theme-toggle">
+          <i id="theme-icon" class="fas fa-moon"></i>
+        </button>
+      </div>
+      <div class="view-selector">
+        <button class="view-btn" data-view="day">Vue Journalière</button>
+        <button class="view-btn" data-view="week">Vue Hebdomadaire</button>
+        <button class="view-btn" data-view="month">Vue Mensuelle</button>
+        <button class="view-btn" data-view="agenda">Vue Agenda</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Vue Journalière -->
+      <section id="day-view" class="view-section active">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-day">Lundi 19 Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="day-container">
+          <div class="day-timeline" id="day-timeline">
+            <!-- Le contenu sera généré dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Hebdomadaire -->
+      <section id="week-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-week-range">19 - 25 Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="week-container">
+          <div class="week-header">
+            <div class="time-column"></div>
+            <div class="day-column">
+              <div class="day-name">Lun</div>
+              <div class="day-number">19</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Mar</div>
+              <div class="day-number">20</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Mer</div>
+              <div class="day-number">21</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Jeu</div>
+              <div class="day-number">22</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Ven</div>
+              <div class="day-number">23</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Sam</div>
+              <div class="day-number">24</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Dim</div>
+              <div class="day-number">25</div>
+            </div>
+          </div>
+          <div class="week-grid" id="week-grid">
+            <!-- Le contenu sera généré dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Mensuelle -->
+      <section id="month-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-month-year">Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <div class="weekday">Lun</div>
+            <div class="weekday">Mar</div>
+            <div class="weekday">Mer</div>
+            <div class="weekday">Jeu</div>
+            <div class="weekday">Ven</div>
+            <div class="weekday">Sam</div>
+            <div class="weekday">Dim</div>
+          </div>
+          <div class="calendar-grid" id="month-grid">
+            <!-- Les jours du mois seront générés dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Agenda -->
+      <section id="agenda-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-agenda-range">Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="agenda-container">
+          <div class="agenda-list" id="agenda-list">
+            <!-- Les événements seront générés dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Popup d'ajout/édition d'événement -->
+  <div id="event-popup-overlay" class="event-popup-overlay"></div>
+  <div id="event-popup" class="event-popup">
+    <div class="event-popup-header">
+      <h2 id="popup-title">Ajouter un événement</h2>
+      <span class="close-popup">&times;</span>
+    </div>
+    <form id="event-form">
+      <div class="form-group">
+        <label for="event-title">Titre</label>
+        <input type="text" id="event-title" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-date">Date</label>
+        <input type="date" id="event-date" required>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="event-start-time">Heure de début</label>
+          <input type="time" id="event-start-time">
+        </div>
+        
+        <div class="form-group">
+          <label for="event-end-time">Heure de fin</label>
+          <input type="time" id="event-end-time">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-location">Lieu</label>
+        <input type="text" id="event-location">
+      </div>
+      
+      <div class="form-group">
+        <label for="event-description">Description</label>
+        <textarea id="event-description" rows="3"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Catégorie</label>
+        <div class="category-selector">
+          <button type="button" class="category-btn" data-color="#4CAF50">Travail</button>
+          <button type="button" class="category-btn" data-color="#2196F3">Personnel</button>
+          <button type="button" class="category-btn" data-color="#FF9800">Famille</button>
+          <button type="button" class="category-btn" data-color="#9C27B0">Loisirs</button>
+          <button type="button" class="category-btn" data-color="#F44336">Important</button>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Rappel</label>
+        <div class="reminder-selector">
+          <select id="reminder-time">
+            <option value="0">Pas de rappel</option>
+            <option value="5">5 minutes avant</option>
+            <option value="15">15 minutes avant</option>
+            <option value="30">30 minutes avant</option>
+            <option value="60">1 heure avant</option>
+            <option value="1440">1 jour avant</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Répétition</label>
+        <div class="repetition-selector">
+          <select id="repetition-type">
+            <option value="none">Pas de répétition</option>
+            <option value="daily">Tous les jours</option>
+            <option value="weekly">Toutes les semaines</option>
+            <option value="monthly">Tous les mois</option>
+            <option value="yearly">Tous les ans</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="button" id="delete-event" class="delete-btn" style="display: none;">Supprimer</button>
+        <div class="right-actions">
+          <button type="button" id="cancel-event">Annuler</button>
+          <button type="submit" id="save-event">Enregistrer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="assets/js/calendrier.js"></script>
+</body>
+</html>

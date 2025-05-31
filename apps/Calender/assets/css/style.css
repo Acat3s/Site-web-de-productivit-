@@ -1,0 +1,140 @@
+:root {
+  /* Palette de couleurs principale - différente mais harmonieuse */
+  --primary-color: #6C5CE7;
+  --secondary-color: #A29BFE;
+  --accent-color: #FD79A8;
+  --success-color: #00B894;
+  --warning-color: #FDCB6E;
+  --danger-color: #E17055;
+  --info-color: #74B9FF;
+  
+  /* Couleurs de fond et de texte - Mode clair */
+  --bg-color: #F7F7FA;
+  --card-bg: #ffffff;
+  --text-primary: #2D3436;
+  --text-secondary: #636E72;
+  --border-color: rgba(0, 0, 0, 0.1);
+  
+  /* Neumorphisme - Mode clair */
+  --nm-shadow-light: rgba(255, 255, 255, 0.8);
+  --nm-shadow-dark: rgba(0, 0, 0, 0.05);
+  --nm-distance: 8px;
+  --nm-blur: 12px;
+  --nm-pressed-distance: 4px;
+  --nm-pressed-blur: 8px;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+  --bg-color: #1E1E2E;
+  --card-bg: #2D2D3F;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B2BEC3;
+  --border-color: rgba(255, 255, 255, 0.1);
+  
+  /* Neumorphisme - Mode sombre */
+  --nm-shadow-light: rgba(45, 45, 63, 0.8);
+  --nm-shadow-dark: rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Animation d'apparition */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation de pulsation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animation de complétion */
+@keyframes completionCheck {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Animation de glissement */
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px;
+  }
+  
+  body {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 5px;
+  }
+}
+
+/* Effet de pression pour les appareils tactiles */
+@media (hover: none) {
+  .view-btn:active,
+  .quick-add-button:active,
+  .task-action-btn:active {
+    transform: scale(0.98);
+  }
+}

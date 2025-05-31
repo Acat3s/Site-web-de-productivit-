@@ -1,0 +1,88 @@
+/* Styles pour le header avec bouton de retour */
+.header-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+  z-index: 10;
+}
+
+.back-button i {
+  margin-right: 8px;
+}
+
+.back-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
+}
+
+.back-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(108, 92, 231, 0.3);
+}
+
+.title {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--text-primary);
+  transition: transform 0.3s ease;
+  z-index: 10;
+}
+
+.theme-toggle:hover {
+  transform: rotate(30deg);
+}
+
+@media (max-width: 768px) {
+  .header-top {
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding-top: 50px;
+  }
+  
+  .back-button {
+    position: static;
+    margin-bottom: 10px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+}

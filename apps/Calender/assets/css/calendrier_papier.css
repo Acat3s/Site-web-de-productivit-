@@ -1,0 +1,171 @@
+/* Modifications pour la vue mensuelle du calendrier - Version finale */
+
+/* Conteneur principal du calendrier */
+.calendar-container {
+  width: 100%;
+  height: calc(100vh - 150px); /* Hauteur fixe pour éviter le défilement excessif */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--calendar-border);
+  border-radius: 8px;
+  overflow: hidden; /* Empêche le débordement */
+  background-color: var(--calendar-background);
+}
+
+/* En-tête des jours de la semaine */
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: var(--calendar-primary-light);
+  border-bottom: 1px solid var(--calendar-border);
+  padding: 8px 0;
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 600;
+  color: var(--calendar-text);
+  font-size: 0.9rem;
+}
+
+/* Grille des jours du mois */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr); /* Force 6 lignes de même hauteur */
+  flex: 1;
+  border-top: none;
+}
+
+/* Style des cases de jour */
+.calendar-day {
+  border: 1px solid var(--calendar-border);
+  padding: 4px;
+  background-color: var(--calendar-background);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  min-height: 0; /* Important pour éviter l'expansion */
+  aspect-ratio: auto; /* Supprime le ratio forcé pour s'adapter à la grille */
+}
+
+/* Suppression des bordures internes redondantes */
+.calendar-day {
+  border-right: none;
+  border-bottom: none;
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: 1px solid var(--calendar-border);
+}
+
+.calendar-grid > .calendar-day:nth-child(n+36) {
+  border-bottom: 1px solid var(--calendar-border);
+}
+
+/* Style pour le numéro du jour */
+.day-number {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+  color: var(--calendar-text);
+}
+
+/* Conteneur des événements du jour */
+.day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+  font-size: 0.75rem; /* Texte plus petit pour les événements */
+}
+
+/* Style des événements */
+.event-item {
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 18px; /* Hauteur minimale pour les événements */
+}
+
+/* Indicateur pour les jours avec plus d'événements */
+.more-events {
+  font-size: 0.7rem;
+  color: var(--calendar-text-light);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Styles pour les jours des autres mois */
+.calendar-day.other-month {
+  background-color: #f9f9f9;
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .calendar-day.other-month {
+  background-color: #2a2a2a;
+}
+
+/* Style pour le jour actuel */
+.calendar-day.today {
+  border: 2px solid var(--calendar-primary);
+  background-color: var(--calendar-primary-light);
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 768px) {
+  .calendar-container {
+    height: calc(100vh - 120px);
+  }
+  
+  .weekday {
+    font-size: 0.8rem;
+  }
+  
+  .day-number {
+    font-size: 0.8rem;
+  }
+  
+  .event-item {
+    font-size: 0.7rem;
+    padding: 1px 2px;
+    min-height: 16px;
+  }
+}
+
+/* Responsive pour les très petits écrans */
+@media (max-width: 480px) {
+  .calendar-container {
+    height: calc(100vh - 100px);
+  }
+  
+  .weekday {
+    font-size: 0.7rem;
+  }
+  
+  .calendar-day {
+    padding: 2px;
+  }
+  
+  .day-number {
+    font-size: 0.7rem;
+    margin-bottom: 1px;
+  }
+  
+  .event-item {
+    min-height: 14px;
+  }
+  
+  .more-events {
+    font-size: 0.6rem;
+  }
+}
