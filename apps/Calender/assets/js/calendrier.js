@@ -807,13 +807,12 @@ function handleDragEnd(e) {
       finalEndMinute = startMinute;
     }
 
-    // Créer la date de début
-    const startDate = new Date(dragStartDate);
-    startDate.setHours(finalStartHour, finalStartMinute, 0, 0);
+    // Correction : création locale pour éviter le décalage UTC
+    const [year, month, day] = dragStartDate.split('-').map(Number);
+    const startDate = new Date(year, month - 1, day, finalStartHour, finalStartMinute, 0, 0);
 
     // Créer la date de fin
-    const endDate = new Date(dragStartDate);
-    endDate.setHours(finalEndHour, finalEndMinute, 0, 0);
+    const endDate = new Date(year, month - 1, day, finalEndHour, finalEndMinute, 0, 0);
 
     console.log(`Création d'événement de ${finalStartHour}:${finalStartMinute} à ${finalEndHour}:${finalEndMinute}`);
 
