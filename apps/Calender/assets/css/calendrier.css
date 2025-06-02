@@ -276,8 +276,9 @@
 .time-slot {
   height: 60px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 2px;
   color: var(--calendar-text-light);
   font-size: 0.8rem;
 }
@@ -293,18 +294,13 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background-color: var(--calendar-border);
+  z-index: 2;
 }
 
 .quarter-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: var(--calendar-border);
-  opacity: 0.5;
-  border-top: 1px dashed var(--calendar-border);
+  display: none;
 }
 
 .week-event {
@@ -347,13 +343,14 @@
 .day-time-column {
   width: 60px;
   flex-shrink: 0;
-  padding-top: 10px;
+  padding-top: 0;
 }
 
 .hour-label {
   height: 60px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 2px;
   justify-content: center;
   color: var(--calendar-text-light);
   font-size: 0.8rem;

@@ -436,9 +436,17 @@ function renderWeekView() {
 
   // Créer une page blanche pour chaque jour avec séparations
   for (let day = 0; day < 7; day++) {
-    const currentDay = new Date(firstDayOfWeek);
-    currentDay.setDate(firstDayOfWeek.getDate() + day);
-    const dateStr = currentDay.toISOString().split('T')[0];
+    // Correction du décalage de date: créer une date locale sans conversion UTC
+    const currentDay = new Date(
+      firstDayOfWeek.getFullYear(),
+      firstDayOfWeek.getMonth(),
+      firstDayOfWeek.getDate() + day
+    );
+    // Formater la date manuellement sans conversion UTC
+    const year = currentDay.getFullYear();
+    const month = String(currentDay.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(currentDay.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayOfMonth}`;
 
     // Créer une colonne pour le jour entier
     const dayColumn = document.createElement('div');
@@ -1171,8 +1179,12 @@ function openNewEventPopup(date) {
   form.reset();
   deleteBtn.style.display = 'none';
 
-  // Pré-remplir la date
-  document.getElementById('event-date').value = date.toISOString().split('T')[0];
+  // Correction du bug de décalage de date: utiliser une date locale
+  const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, '0');
+  const day = String(localDate.getDate()).padStart(2, '0');
+  document.getElementById('event-date').value = `${year}-${month}-${day}`;
 
   // Si une heure est spécifiée, la pré-remplir
   if (date.getHours() !== 0) {
@@ -1222,8 +1234,12 @@ function openNewEventPopupWithTimeRange(startDate, endDate) {
   form.reset();
   deleteBtn.style.display = 'none';
 
-  // Pré-remplir la date
-  document.getElementById('event-date').value = startDate.toISOString().split('T')[0];
+  // Correction du bug de décalage de date: utiliser une date locale
+  const localDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, '0');
+  const day = String(localDate.getDate()).padStart(2, '0');
+  document.getElementById('event-date').value = `${year}-${month}-${day}`;
 
   // Pré-remplir les heures de début et de fin
   const startHours = startDate.getHours().toString().padStart(2, '0');
