@@ -8,12 +8,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
 }
 
 .header-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 /* Style du bouton Toolbox pour l'intégration */
@@ -28,7 +31,7 @@
   font-family: inherit;
   transition: background 0.2s, color 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
@@ -42,4 +45,6 @@
 /* Pour que le bouton soit bien aligné avec le bouton thème */
 .theme-toggle {
   margin-right: 0;
+  display: inline-flex;
+  align-items: center;
 } 
