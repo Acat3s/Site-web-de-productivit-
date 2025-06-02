@@ -50,6 +50,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== FONCTIONS D'INITIALISATION =====
   
+  // Initialiser le bouton de duplication des tâches d'hier
+  function initDuplicateYesterdayButton() {
+    const duplicateButton = document.getElementById('duplicate-yesterday-tasks');
+    if (duplicateButton) {
+      duplicateButton.addEventListener('click', duplicateYesterdayTasks);
+    }
+  }
+  
+  // Dupliquer les tâches d'hier pour aujourd'hui
+  function duplicateYesterdayTasks() {
+    console.log("Duplication des tâches d'hier...");
+    
+    // Obtenir la date d'hier
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+    
+    // Obtenir la date d'aujourd'hui
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Filtrer les tâches d'hier
+    const yesterdayTasks = tasks.daily.filter(task => {
+      const taskDate = new Date(task.date);
+      return isSameDay(taskDate, yesterday);
+    });
+    
+    if (yesterdayTasks.length === 0) {
+      // Afficher une notification si aucune tâche n'a été trouvée pour hier
+      showNotification("Aucune tâche trouvée pour hier", "warning");
+      return;
+    }
+    
+    // Dupliquer les tâches d'hier pour aujourd'hui
+    const duplicatedTasks = yesterdayTasks.map(task => {
+      // Créer une copie de la tâche
+      const newTask = { ...task };
+      
+      // Générer un nouvel ID
+      newTask.id = generateTaskId();
+      
+      // Mettre à jour la date pour aujourd'hui
+      newTask.date = today.toISOString();
+      
+      // Réinitialiser le statut (marquer comme non complétée)
+      newTask.completed = false;
+      
+      // Réinitialiser le compteur de répétition si nécessaire
+      if (newTask.repetition && newTask.repetition.total > 0) {
+        newTask.repetition.current = 0;
+      }
+      
+      return newTask;
+    });
+    
+    // Ajouter les tâches dupliquées à la liste des tâches quotidiennes
+    tasks.daily = [...tasks.daily, ...duplicatedTasks];
+    
+    // Sauvegarder les tâches
+    saveTasksToStorage();
+    
+    // Mettre à jour l'affichage
+    updateDailyDisplay();
+    
+    // Afficher une notification de succès
+    showNotification(`${duplicatedTasks.length} tâche(s) dupliquée(s) avec succès`, "success");
+  }
+  
   // Initialiser avec vérification d'authentification
   function initializeWithAuthCheck() {
     const isConnected = typeof TodoFirebaseManager !== 'undefined' && 
@@ -289,74 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initialiser le bouton de duplication des tâches d'hier
-  function initDuplicateYesterdayButton() {
-    const duplicateButton = document.getElementById('duplicate-yesterday-tasks');
-    if (duplicateButton) {
-      duplicateButton.addEventListener('click', duplicateYesterdayTasks);
-    }
-  }
-  
-  // Dupliquer les tâches d'hier pour aujourd'hui
-  function duplicateYesterdayTasks() {
-    console.log("Duplication des tâches d'hier...");
-    
-    // Obtenir la date d'hier
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-    
-    // Obtenir la date d'aujourd'hui
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Filtrer les tâches d'hier
-    const yesterdayTasks = tasks.daily.filter(task => {
-      const taskDate = new Date(task.date);
-      return isSameDay(taskDate, yesterday);
-    });
-    
-    if (yesterdayTasks.length === 0) {
-      // Afficher une notification si aucune tâche n'a été trouvée pour hier
-      showNotification("Aucune tâche trouvée pour hier", "warning");
-      return;
-    }
-    
-    // Dupliquer les tâches d'hier pour aujourd'hui
-    const duplicatedTasks = yesterdayTasks.map(task => {
-      // Créer une copie de la tâche
-      const newTask = { ...task };
-      
-      // Générer un nouvel ID
-      newTask.id = generateId();
-      
-      // Mettre à jour la date pour aujourd'hui
-      newTask.date = today.toISOString();
-      
-      // Réinitialiser le statut (marquer comme non complétée)
-      newTask.completed = false;
-      
-      // Réinitialiser le compteur de répétition si nécessaire
-      if (newTask.repetition && newTask.repetition.total > 0) {
-        newTask.repetition.current = 0;
-      }
-      
-      return newTask;
-    });
-    
-    // Ajouter les tâches dupliquées à la liste des tâches quotidiennes
-    tasks.daily = [...tasks.daily, ...duplicatedTasks];
-    
-    // Sauvegarder les tâches
-    saveTasksToLocalStorage();
-    
-    // Mettre à jour l'affichage
-    updateDailyDisplay();
-    
-    // Afficher une notification de succès
-    showNotification(`${duplicatedTasks.length} tâche(s) dupliquée(s) avec succès`, "success");
-  }
-  
   // ===== FONCTIONS DE NAVIGATION =====
   
   // Changement de vue
