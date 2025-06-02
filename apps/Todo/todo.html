@@ -8,7 +8,9 @@
   <link rel="stylesheet" href="assets/css/todo.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/Toolbox_Todo.css">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -29,8 +31,8 @@
         <button class="view-btn" data-view="general" title="Vue générale">Todo Générale</button>
       </div>
     </header>
-
-    <main>
+    <div class="todo-header"></div>
+    <div class="todo-main">
       <!-- Vue Todo Quotidienne -->
       <section id="daily-view" class="view-section active">
         <div class="view-header">
@@ -109,7 +111,7 @@
           <div id="general-tasks" class="task-list"></div>
         </div>
       </section>
-    </main>
+    </div>
     <div class="notification-container"></div>
   </div>
 
@@ -195,5 +197,7 @@
   <script src="../../frontend/js/verify-firestore.js"></script>
   <script src="../../frontend/js/test-root-tasks.js"></script>
   <script src="../../frontend/js/create-test-subcollection.js"></script>
+  <script src="assets/js/Toolbox.js"></script>
+  <script src="assets/js/Toolbox_Todo.js"></script>
 </body>
 </html>

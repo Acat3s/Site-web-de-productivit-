@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier - ProductivityHub</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/calendrier.css">
+  <link rel="stylesheet" href="assets/css/header.css">
+  <link rel="stylesheet" href="assets/css/calendrier_papier.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+  /* Styles pour le popup d'événement */
+  .event-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+  }
+
+  .event-popup {
+    width: 90%;
+    max-width: 500px;
+    background-color: var(--calendar-background);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    padding: 25px;
+    display: none;
+    z-index: 1001;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: popup-fade-in 0.3s ease-out;
+  }
+
+  @keyframes popup-fade-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -55%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .event-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--calendar-border);
+    padding-bottom: 15px;
+  }
+
+  .event-popup-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--calendar-primary);
+    margin: 0;
+  }
+
+  .close-popup {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background-color: var(--calendar-primary-light);
+    color: var(--calendar-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  .close-popup:hover {
+    background-color: var(--calendar-primary);
+    color: white;
+    transform: rotate(90deg);
+  }
+
+  /* Styles pour le formulaire */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--calendar-text);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="date"],
+  .form-group input[type="time"],
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--calendar-border);
+    border-radius: 8px;
+    background-color: var(--calendar-background);
+    color: var(--calendar-text);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--calendar-primary);
+    box-shadow: 0 0 0 2px var(--calendar-primary-light);
+    outline: none;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 15px;
+  }
+
+  .form-row .form-group {
+    flex: 1;
+  }
+
+  /* Sélecteur de couleur personnalisé */
+  .color-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .color-preview {
+    width: 100%;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--calendar-border);
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .color-preview:hover {
+    transform: scale(1.02);
+  }
+
+  .color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+  }
+
+  .color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+  }
+
+  .color-option:hover {
+    transform: scale(1.1);
+  }
+
+  .color-option.selected {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--calendar-primary);
+  }
+
+  .color-input {
+    margin-top: 10px;
+  }
+
+  /* Boutons d'action */
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    align-items: center;
+  }
+
+  .delete-btn {
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .delete-btn:hover {
+    background-color: #e71a2e;
+  }
+
+  .right-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  #cancel-event {
+    background-color: #f1f2f6;
+    color: #2f3542;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  #cancel-event:hover {
+    background-color: #dfe4ea;
+  }
+
+  #save-event {
+    background-color: var(--calendar-primary);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+
+  #save-event:hover {
+    background-color: var(--calendar-primary-hover);
+  }
+
+  #save-event:active {
+    transform: scale(0.98);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .event-popup {
+      width: 95%;
+      padding: 20px;
+    }
+    
+    .form-row {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .form-actions {
+      flex-direction: column-reverse;
+      gap: 15px;
+    }
+    
+    .right-actions {
+      width: 100%;
+    }
+    
+    #cancel-event, #save-event {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .delete-btn {
+      width: 100%;
+    }
+  }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="header-top">
+        <a href="../../index.html" class="back-button">
+          <i class="fas fa-arrow-left"></i> Menu
+        </a>
+        <h1 class="title">Calendrier</h1>
+        <button class="theme-toggle" id="theme-toggle">
+          <i id="theme-icon" class="fas fa-moon"></i>
+        </button>
+      </div>
+      <div class="view-selector">
+        <button class="view-btn" data-view="day">Vue Journalière</button>
+        <button class="view-btn" data-view="week">Vue Hebdomadaire</button>
+        <button class="view-btn" data-view="month">Vue Mensuelle</button>
+        <button class="view-btn" data-view="agenda">Vue Agenda</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Vue Journalière -->
+      <section id="day-view" class="view-section active">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-day">Lundi 19 Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="day-container">
+          <div class="day-timeline" id="day-timeline">
+            <!-- Le contenu sera généré dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Hebdomadaire -->
+      <section id="week-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-week-range">19 - 25 Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="week-container">
+          <div class="week-header">
+            <div class="time-column"></div>
+            <div class="day-column">
+              <div class="day-name">Lun</div>
+              <div class="day-number">19</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Mar</div>
+              <div class="day-number">20</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Mer</div>
+              <div class="day-number">21</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Jeu</div>
+              <div class="day-number">22</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Ven</div>
+              <div class="day-number">23</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Sam</div>
+              <div class="day-number">24</div>
+            </div>
+            <div class="day-column">
+              <div class="day-name">Dim</div>
+              <div class="day-number">25</div>
+            </div>
+          </div>
+          <div class="week-grid" id="week-grid">
+            <!-- Le contenu sera généré dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Mensuelle -->
+      <section id="month-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-month-year">Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <div class="weekday">Lun</div>
+            <div class="weekday">Mar</div>
+            <div class="weekday">Mer</div>
+            <div class="weekday">Jeu</div>
+            <div class="weekday">Ven</div>
+            <div class="weekday">Sam</div>
+            <div class="weekday">Dim</div>
+          </div>
+          <div class="calendar-grid" id="month-grid">
+            <!-- Les jours du mois seront générés dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue Agenda -->
+      <section id="agenda-view" class="view-section">
+        <div class="view-header">
+          <div class="navigation">
+            <div class="nav-arrow left-arrow">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+            <div class="current-period">
+              <span id="current-agenda-range">Mai 2025</span>
+            </div>
+            <div class="nav-arrow right-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="view-actions">
+            <button class="action-btn today-btn">Aujourd'hui</button>
+          </div>
+        </div>
+        <div class="agenda-container">
+          <div class="agenda-list" id="agenda-list">
+            <!-- Les événements seront générés dynamiquement par JavaScript -->
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Popup d'ajout/édition d'événement -->
+  <div id="event-popup-overlay" class="event-popup-overlay"></div>
+  <div id="event-popup" class="event-popup">
+    <div class="event-popup-header">
+      <h2 id="popup-title">Ajouter un événement</h2>
+      <span class="close-popup">&times;</span>
+    </div>
+    <form id="event-form">
+      <div class="form-group">
+        <label for="event-title">Titre</label>
+        <input type="text" id="event-title" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-date">Date</label>
+        <input type="date" id="event-date" required>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="event-start-time">Heure de début</label>
+          <input type="time" id="event-start-time">
+        </div>
+        
+        <div class="form-group">
+          <label for="event-end-time">Heure de fin</label>
+          <input type="time" id="event-end-time">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-location">Lieu</label>
+        <input type="text" id="event-location">
+      </div>
+      
+      <div class="form-group">
+        <label for="event-description">Description</label>
+        <textarea id="event-description" rows="3"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="event-color">Couleur</label>
+        <div class="color-picker-container">
+          <div id="color-preview" class="color-preview" style="background-color: #4CAF50;">
+            Aperçu de la couleur
+          </div>
+          <div class="color-palette">
+            <div class="color-option selected" data-color="#4CAF50" style="background-color: #4CAF50;"></div>
+            <div class="color-option" data-color="#2196F3" style="background-color: #2196F3;"></div>
+            <div class="color-option" data-color="#FF9800" style="background-color: #FF9800;"></div>
+            <div class="color-option" data-color="#9C27B0" style="background-color: #9C27B0;"></div>
+            <div class="color-option" data-color="#F44336" style="background-color: #F44336;"></div>
+            <div class="color-option" data-color="#009688" style="background-color: #009688;"></div>
+            <div class="color-option" data-color="#673AB7" style="background-color: #673AB7;"></div>
+            <div class="color-option" data-color="#3F51B5" style="background-color: #3F51B5;"></div>
+            <div class="color-option" data-color="#795548" style="background-color: #795548;"></div>
+            <div class="color-option" data-color="#607D8B" style="background-color: #607D8B;"></div>
+          </div>
+          <div class="color-input">
+            <input type="color" id="event-color" value="#4CAF50">
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Rappel</label>
+        <div class="reminder-selector">
+          <select id="reminder-time">
+            <option value="0">Pas de rappel</option>
+            <option value="5">5 minutes avant</option>
+            <option value="15">15 minutes avant</option>
+            <option value="30">30 minutes avant</option>
+            <option value="60">1 heure avant</option>
+            <option value="1440">1 jour avant</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Répétition</label>
+        <div class="repetition-selector">
+          <select id="repetition-type">
+            <option value="none">Pas de répétition</option>
+            <option value="daily">Tous les jours</option>
+            <option value="weekly">Toutes les semaines</option>
+            <option value="monthly">Tous les mois</option>
+            <option value="yearly">Tous les ans</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="button" id="delete-event" class="delete-btn" style="display: none;">Supprimer</button>
+        <div class="right-actions">
+          <button type="button" id="cancel-event">Annuler</button>
+          <button type="submit" id="save-event">Enregistrer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="assets/js/calendrier.js"></script>
+  <script>
+    // Script pour le sélecteur de couleur
+    document.addEventListener('DOMContentLoaded', function() {
+      const colorOptions = document.querySelectorAll('.color-option');
+      const colorPreview = document.getElementById('color-preview');
+      const colorInput = document.getElementById('event-color');
+      
+      // Initialiser avec la première couleur
+      let selectedColor = colorOptions[0].getAttribute('data-color');
+      colorPreview.style.backgroundColor = selectedColor;
+      colorInput.value = selectedColor;
+      
+      // Gérer les clics sur les options de couleur
+      colorOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          // Retirer la sélection précédente
+          document.querySelector('.color-option.selected').classList.remove('selected');
+          
+          // Ajouter la sélection à l'option cliquée
+          this.classList.add('selected');
+          
+          // Mettre à jour la couleur sélectionnée
+          selectedColor = this.getAttribute('data-color');
+          colorPreview.style.backgroundColor = selectedColor;
+          colorInput.value = selectedColor;
+        });
+      });
+      
+      // Gérer les changements sur l'input color
+      colorInput.addEventListener('input', function() {
+        selectedColor = this.value;
+        colorPreview.style.backgroundColor = selectedColor;
+        
+        // Désélectionner toutes les options prédéfinies
+        colorOptions.forEach(option => {
+          option.classList.remove('selected');
+          
+          // Si la couleur correspond à une option prédéfinie, la sélectionner
+          if (option.getAttribute('data-color').toUpperCase() === selectedColor.toUpperCase()) {
+            option.classList.add('selected');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -63,46 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Afficher la vue par défaut (journalière)
   renderCurrentView();
-
-  // Gestion des onglets du popup
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', function() {
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      this.classList.add('active');
-      const tabId = this.getAttribute('data-tab');
-      document.getElementById(tabId + '-tab').classList.add('active');
-    });
-  });
-
-  // Gestion du sélecteur de couleur
-  const colorOptions = document.querySelectorAll('.color-option');
-  const colorPreview = document.getElementById('color-preview');
-  const colorInput = document.getElementById('event-color');
-  if (colorOptions.length && colorPreview && colorInput) {
-    let selectedColor = colorOptions[0].getAttribute('data-color');
-    colorPreview.style.backgroundColor = selectedColor;
-    colorInput.value = selectedColor;
-    colorOptions.forEach(option => {
-      option.addEventListener('click', function() {
-        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-        this.classList.add('selected');
-        selectedColor = this.getAttribute('data-color');
-        colorPreview.style.backgroundColor = selectedColor;
-        colorInput.value = selectedColor;
-      });
-    });
-    colorInput.addEventListener('input', function() {
-      selectedColor = this.value;
-      colorPreview.style.backgroundColor = selectedColor;
-      colorOptions.forEach(option => {
-        option.classList.remove('selected');
-        if (option.getAttribute('data-color').toUpperCase() === selectedColor.toUpperCase()) {
-          option.classList.add('selected');
-        }
-      });
-    });
-  }
 });
 
 // Fonction pour mettre à jour l'icône du thème
@@ -226,24 +186,6 @@ function initEventListeners() {
   deleteBtn.addEventListener('click', () => {
     deleteEvent();
   });
-
-  // Ajout gestion du toggle 'Journée entière'
-  const allDayToggle = document.getElementById('all-day-event');
-  if (allDayToggle) {
-    allDayToggle.addEventListener('change', function() {
-      const startTime = document.getElementById('event-start-time');
-      const endTime = document.getElementById('event-end-time');
-      if (this.checked) {
-        startTime.value = '';
-        endTime.value = '';
-        startTime.disabled = true;
-        endTime.disabled = true;
-      } else {
-        startTime.disabled = false;
-        endTime.disabled = false;
-      }
-    });
-  }
 }
 
 // Navigation dans le calendrier
@@ -436,9 +378,14 @@ function renderWeekView() {
 
   // Créer une page blanche pour chaque jour avec séparations
   for (let day = 0; day < 7; day++) {
-    const currentDay = new Date(firstDayOfWeek);
-    currentDay.setDate(firstDayOfWeek.getDate() + day);
-    const dateStr = currentDay.toISOString().split('T')[0];
+    // Correction du décalage de date: créer une date locale sans conversion UTC
+    const currentDay = new Date(firstDayOfWeek.getFullYear(), firstDayOfWeek.getMonth(), firstDayOfWeek.getDate() + day);
+    
+    // Formater la date manuellement au format YYYY-MM-DD sans conversion UTC
+    const year = currentDay.getFullYear();
+    const month = (currentDay.getMonth() + 1).toString().padStart(2, '0');
+    const dayOfMonth = currentDay.getDate().toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayOfMonth}`;
 
     // Créer une colonne pour le jour entier
     const dayColumn = document.createElement('div');
@@ -1103,9 +1050,25 @@ function updateAgendaTitle() {
 
 // Obtenir le premier jour de la semaine (lundi) pour une date donnée
 function getFirstDayOfWeek(date) {
-  const day = date.getDay(); // 0 (dimanche) à 6 (samedi)
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajuster pour que lundi soit le premier jour
-  return new Date(date.getFullYear(), date.getMonth(), diff);
+  // Créer une nouvelle date pour éviter de modifier l'originale
+  const newDate = new Date(date);
+  
+  // Réinitialiser les heures pour éviter les problèmes de fuseau horaire
+  newDate.setHours(0, 0, 0, 0);
+  
+  // Obtenir le jour de la semaine (0 = dimanche, 1 = lundi, ..., 6 = samedi)
+  const day = newDate.getDay();
+  
+  // Calculer le nombre de jours à soustraire pour atteindre le lundi
+  // Si c'est dimanche (0), on recule de 6 jours
+  // Sinon, on recule de (jour - 1) jours
+  const daysToSubtract = day === 0 ? 6 : day - 1;
+  
+  // Créer une nouvelle date pour le lundi (premier jour de la semaine)
+  const mondayDate = new Date(newDate);
+  mondayDate.setDate(newDate.getDate() - daysToSubtract);
+  
+  return mondayDate;
 }
 
 // Formater une date au format "Mois AAAA"
@@ -1171,8 +1134,14 @@ function openNewEventPopup(date) {
   form.reset();
   deleteBtn.style.display = 'none';
 
-  // Pré-remplir la date
-  document.getElementById('event-date').value = date.toISOString().split('T')[0];
+  // Correction du bug de décalage de date: utiliser une date locale
+  const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  // Pré-remplir la date en format YYYY-MM-DD sans conversion UTC
+  const year = localDate.getFullYear();
+  const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = localDate.getDate().toString().padStart(2, '0');
+  document.getElementById('event-date').value = `${year}-${month}-${day}`;
 
   // Si une heure est spécifiée, la pré-remplir
   if (date.getHours() !== 0) {
@@ -1188,10 +1157,16 @@ function openNewEventPopup(date) {
     document.getElementById('event-end-time').value = `${endHours}:${endMinutes}`;
   }
 
-  // Réinitialiser les boutons de catégorie
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.style.backgroundColor = btn.getAttribute('data-color');
+  // Réinitialiser la couleur par défaut
+  document.getElementById('event-color').value = '#4CAF50';
+  document.getElementById('color-preview').style.backgroundColor = '#4CAF50';
+  
+  // Réinitialiser les options de couleur
+  document.querySelectorAll('.color-option').forEach(option => {
+    option.classList.remove('selected');
+    if (option.getAttribute('data-color') === '#4CAF50') {
+      option.classList.add('selected');
+    }
   });
 
   // Stocker l'ID de l'événement (null pour un nouvel événement)
@@ -1200,11 +1175,6 @@ function openNewEventPopup(date) {
   // Afficher le popup
   popupOverlay.style.display = 'block';
   popup.style.display = 'block';
-
-  // Initialiser le toggle 'Journée entière'
-  document.getElementById('all-day-event').checked = false;
-  document.getElementById('event-start-time').disabled = false;
-  document.getElementById('event-end-time').disabled = false;
 }
 
 // Ouvrir le popup pour un nouvel événement avec une plage horaire
@@ -1222,8 +1192,14 @@ function openNewEventPopupWithTimeRange(startDate, endDate) {
   form.reset();
   deleteBtn.style.display = 'none';
 
-  // Pré-remplir la date
-  document.getElementById('event-date').value = startDate.toISOString().split('T')[0];
+  // Correction du bug de décalage de date: utiliser une date locale
+  const localDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  
+  // Pré-remplir la date en format YYYY-MM-DD sans conversion UTC
+  const year = localDate.getFullYear();
+  const month = (localDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = localDate.getDate().toString().padStart(2, '0');
+  document.getElementById('event-date').value = `${year}-${month}-${day}`;
 
   // Pré-remplir les heures de début et de fin
   const startHours = startDate.getHours().toString().padStart(2, '0');
@@ -1246,11 +1222,6 @@ function openNewEventPopupWithTimeRange(startDate, endDate) {
   // Afficher le popup
   popupOverlay.style.display = 'block';
   popup.style.display = 'block';
-
-  // Initialiser le toggle 'Journée entière'
-  document.getElementById('all-day-event').checked = false;
-  document.getElementById('event-start-time').disabled = false;
-  document.getElementById('event-end-time').disabled = false;
 }
 
 // Ouvrir le popup pour éditer un événement existant
@@ -1278,13 +1249,16 @@ function openEventPopup(event) {
   document.getElementById('reminder-time').value = event.reminder || '0';
   document.getElementById('repetition-type').value = event.repetition || 'none';
 
-  // Sélectionner la catégorie
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.classList.remove('active');
-    btn.style.backgroundColor = btn.getAttribute('data-color');
-
-    if (btn.getAttribute('data-color') === event.color) {
-      btn.classList.add('active');
+  // Définir la couleur de l'événement
+  const eventColor = event.color || '#4CAF50';
+  document.getElementById('event-color').value = eventColor;
+  document.getElementById('color-preview').style.backgroundColor = eventColor;
+  
+  // Sélectionner l'option de couleur correspondante si elle existe
+  document.querySelectorAll('.color-option').forEach(option => {
+    option.classList.remove('selected');
+    if (option.getAttribute('data-color') === eventColor) {
+      option.classList.add('selected');
     }
   });
 
@@ -1294,12 +1268,6 @@ function openEventPopup(event) {
   // Afficher le popup
   popupOverlay.style.display = 'block';
   popup.style.display = 'block';
-
-  // Initialiser le toggle 'Journée entière'
-  const allDay = !event.startTime && !event.endTime;
-  document.getElementById('all-day-event').checked = allDay;
-  document.getElementById('event-start-time').disabled = allDay;
-  document.getElementById('event-end-time').disabled = allDay;
 }
 
 // Fermer le popup d'événement
@@ -1328,29 +1296,16 @@ function saveEvent() {
   const reminder = document.getElementById('reminder-time').value;
   const repetition = document.getElementById('repetition-type').value;
 
-  // Récupérer la catégorie sélectionnée
-  let color = '#2ECC71'; // Couleur par défaut
-  const activeCategory = document.querySelector('.category-btn.active');
-  if (activeCategory) {
-    color = activeCategory.getAttribute('data-color');
-  }
-
-  // Récupérer le toggle 'Journée entière'
-  const allDay = document.getElementById('all-day-event').checked;
-  let startTimeFormatted = startTime;
-  let endTimeFormatted = endTime;
-  if (allDay) {
-    startTimeFormatted = '';
-    endTimeFormatted = '';
-  }
+  // Récupérer la couleur sélectionnée
+  let color = document.getElementById('event-color').value || '#4CAF50'; // Couleur par défaut
 
   // Créer l'objet événement
   const event = {
     id: eventId || Date.now().toString(), // Utiliser l'ID existant ou en créer un nouveau
     title,
     date,
-    startTime: startTimeFormatted,
-    endTime: endTimeFormatted,
+    startTime,
+    endTime,
     location,
     description,
     color,

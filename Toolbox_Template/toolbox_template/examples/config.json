@@ -1,0 +1,22 @@
+{
+  "features": [
+    {
+      "name": "Fonctionnalité 1",
+      "description": "Description de la première fonctionnalité optionnelle.",
+      "enabled": false,
+      "gif": ""
+    },
+    {
+      "name": "Fonctionnalité 2",
+      "description": "Description de la deuxième fonctionnalité optionnelle.",
+      "enabled": false,
+      "gif": ""
+    },
+    {
+      "name": "Fonctionnalité 3",
+      "description": "Description de la troisième fonctionnalité optionnelle.",
+      "enabled": false,
+      "gif": ""
+    }
+  ]
+}

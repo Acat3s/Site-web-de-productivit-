@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemple d'intégration de Toolbox</title>
+    
+    <!-- Styles de l'application -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .app-container {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            padding: 20px;
+        }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-container {
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            display: none; /* Masqué par défaut */
+        }
+        .feature-container.active {
+            display: block;
+        }
+    </style>
+    
+    <!-- Importer les styles de la Toolbox -->
+    <link rel="stylesheet" href="../css/Toolbox.css">
+</head>
+<body>
+    <header>
+        <h1>Exemple d'intégration de Toolbox</h1>
+        <p>Démonstration d'une Toolbox générique adaptée à une application</p>
+    </header>
+
+    <div class="container">
+        <div class="app-container">
+            <div class="app-header">
+                <h2>Mon Application</h2>
+                <!-- Le bouton Toolbox sera ajouté ici par le script -->
+            </div>
+
+            <div class="app-content">
+                <p>Contenu principal de l'application.</p>
+                
+                <!-- Conteneurs pour les fonctionnalités optionnelles -->
+                <div id="feature1-container" class="feature-container">
+                    <h3>Fonctionnalité 1</h3>
+                    <p>Cette fonctionnalité est maintenant active. Vous pouvez la désactiver via la Toolbox.</p>
+                </div>
+                
+                <div id="feature2-container" class="feature-container">
+                    <h3>Fonctionnalité 2</h3>
+                    <p>Cette fonctionnalité est maintenant active. Vous pouvez la désactiver via la Toolbox.</p>
+                </div>
+                
+                <div id="feature3-container" class="feature-container">
+                    <h3>Fonctionnalité 3</h3>
+                    <p>Cette fonctionnalité est maintenant active. Vous pouvez la désactiver via la Toolbox.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Importer le script de la Toolbox -->
+    <script src="../js/Toolbox.js"></script>
+    
+    <!-- Script d'initialisation et de personnalisation de la Toolbox -->
+    <script>
+        // Attendre que le DOM soit chargé
+        document.addEventListener('DOMContentLoaded', function() {
+            // Créer une classe dérivée de Toolbox pour notre application
+            class MyAppToolbox extends Toolbox {
+                constructor() {
+                    // Configuration de la Toolbox
+                    super({
+                        appName: 'MyApp',
+                        buttonContainer: '.app-header',
+                        features: [
+                            {
+                                name: "Fonctionnalité 1",
+                                description: "Description de la première fonctionnalité optionnelle.",
+                                enabled: false,
+                                gif: ""
+                            },
+                            {
+                                name: "Fonctionnalité 2",
+                                description: "Description de la deuxième fonctionnalité optionnelle.",
+                                enabled: false,
+                                gif: ""
+                            },
+                            {
+                                name: "Fonctionnalité 3",
+                                description: "Description de la troisième fonctionnalité optionnelle.",
+                                enabled: false,
+                                gif: ""
+                            }
+                        ]
+                    });
+                }
+                
+                // Surcharger la méthode pour créer les éléments des fonctionnalités
+                createFeatureElements() {
+                    // Rien à faire ici, les conteneurs sont déjà dans le HTML
+                    console.log('Éléments des fonctionnalités créés');
+                }
+                
+                // Surcharger la méthode pour réinitialiser les fonctionnalités
+                resetFeatures() {
+                    // Masquer tous les conteneurs de fonctionnalités
+                    document.querySelectorAll('.feature-container').forEach(container => {
+                        container.classList.remove('active');
+                    });
+                }
+                
+                // Surcharger la méthode pour appliquer une fonctionnalité
+                applyFeature(featureName) {
+                    // Afficher le conteneur correspondant à la fonctionnalité
+                    switch(featureName) {
+                        case 'Fonctionnalité 1':
+                            document.getElementById('feature1-container').classList.add('active');
+                            break;
+                        case 'Fonctionnalité 2':
+                            document.getElementById('feature2-container').classList.add('active');
+                            break;
+                        case 'Fonctionnalité 3':
+                            document.getElementById('feature3-container').classList.add('active');
+                            break;
+                    }
+                }
+                
+                // Surcharger la méthode pour afficher une notification
+                showNotification(message, type = 'info') {
+                    // Créer une notification personnalisée
+                    const notification = document.createElement('div');
+                    notification.className = `notification ${type}`;
+                    notification.textContent = message;
+                    
+                    // Ajouter la notification au document
+                    document.body.appendChild(notification);
+                    
+                    // Supprimer la notification après 3 secondes
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            }
+            
+            // Initialiser notre Toolbox personnalisée
+            window.myAppToolbox = new MyAppToolbox();
+        });
+    </script>
+    
+    <!-- Styles pour les notifications personnalisées -->
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+            z-index: 1001;
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+        }
+        
+        .notification.info {
+            background-color: #2196F3;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #F44336;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+    </style>
+</body>
+</html>

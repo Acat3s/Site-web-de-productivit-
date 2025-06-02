@@ -180,85 +180,108 @@
       <h2 id="popup-title">Ajouter un événement</h2>
       <span class="close-popup">&times;</span>
     </div>
-    <form id="event-form">
-      <div class="form-group">
-        <label for="event-title">Titre</label>
-        <input type="text" id="event-title" required>
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <div class="tab-button active" data-tab="general">Général</div>
+        <div class="tab-button" data-tab="datetime">Date & Heure</div>
+        <div class="tab-button" data-tab="details">Détails</div>
+        <div class="tab-button" data-tab="options">Options</div>
       </div>
-      
-      <div class="form-group">
-        <label for="event-date">Date</label>
-        <input type="date" id="event-date" required>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label for="event-start-time">Heure de début</label>
-          <input type="time" id="event-start-time">
+      <form id="event-form">
+        <div class="tab-content active" id="general-tab">
+          <div class="form-group">
+            <label for="event-title">Titre</label>
+            <input type="text" id="event-title" required>
+          </div>
+          <div class="form-group">
+            <label for="event-location">Lieu</label>
+            <input type="text" id="event-location">
+          </div>
+          <div class="form-group">
+            <label for="event-description">Description</label>
+            <textarea id="event-description" rows="3"></textarea>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label for="event-end-time">Heure de fin</label>
-          <input type="time" id="event-end-time">
+        <div class="tab-content" id="datetime-tab">
+          <div class="form-group">
+            <label for="event-date">Date</label>
+            <input type="date" id="event-date" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="event-start-time">Heure de début</label>
+              <input type="time" id="event-start-time">
+            </div>
+            <div class="form-group">
+              <label for="event-end-time">Heure de fin</label>
+              <input type="time" id="event-end-time">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Journée entière</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="all-day-event">
+              <label for="all-day-event"></label>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label for="event-location">Lieu</label>
-        <input type="text" id="event-location">
-      </div>
-      
-      <div class="form-group">
-        <label for="event-description">Description</label>
-        <textarea id="event-description" rows="3"></textarea>
-      </div>
-      
-      <div class="form-group">
-        <label>Catégorie</label>
-        <div class="category-selector">
-          <button type="button" class="category-btn" data-color="#4CAF50">Travail</button>
-          <button type="button" class="category-btn" data-color="#2196F3">Personnel</button>
-          <button type="button" class="category-btn" data-color="#FF9800">Famille</button>
-          <button type="button" class="category-btn" data-color="#9C27B0">Loisirs</button>
-          <button type="button" class="category-btn" data-color="#F44336">Important</button>
+        <div class="tab-content" id="details-tab">
+          <div class="form-group">
+            <label for="event-color">Couleur</label>
+            <div class="color-picker-container">
+              <div id="color-preview" class="color-preview" style="background-color: #4CAF50;">Aperçu de la couleur</div>
+              <div class="color-palette">
+                <div class="color-option selected" data-color="#4CAF50" style="background-color: #4CAF50;"></div>
+                <div class="color-option" data-color="#2196F3" style="background-color: #2196F3;"></div>
+                <div class="color-option" data-color="#FF9800" style="background-color: #FF9800;"></div>
+                <div class="color-option" data-color="#9C27B0" style="background-color: #9C27B0;"></div>
+                <div class="color-option" data-color="#F44336" style="background-color: #F44336;"></div>
+                <div class="color-option" data-color="#009688" style="background-color: #009688;"></div>
+                <div class="color-option" data-color="#673AB7" style="background-color: #673AB7;"></div>
+                <div class="color-option" data-color="#3F51B5" style="background-color: #3F51B5;"></div>
+              </div>
+              <div class="color-input">
+                <input type="color" id="event-color" value="#4CAF50">
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label>Rappel</label>
-        <div class="reminder-selector">
-          <select id="reminder-time">
-            <option value="0">Pas de rappel</option>
-            <option value="5">5 minutes avant</option>
-            <option value="15">15 minutes avant</option>
-            <option value="30">30 minutes avant</option>
-            <option value="60">1 heure avant</option>
-            <option value="1440">1 jour avant</option>
-          </select>
+        <div class="tab-content" id="options-tab">
+          <div class="form-group">
+            <label>Rappel</label>
+            <div class="reminder-selector">
+              <select id="reminder-time">
+                <option value="0">Pas de rappel</option>
+                <option value="5">5 minutes avant</option>
+                <option value="15">15 minutes avant</option>
+                <option value="30">30 minutes avant</option>
+                <option value="60">1 heure avant</option>
+                <option value="1440">1 jour avant</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Répétition</label>
+            <div class="repetition-selector">
+              <select id="repetition-type">
+                <option value="none">Pas de répétition</option>
+                <option value="daily">Tous les jours</option>
+                <option value="weekly">Toutes les semaines</option>
+                <option value="monthly">Tous les mois</option>
+                <option value="yearly">Tous les ans</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-group">
-        <label>Répétition</label>
-        <div class="repetition-selector">
-          <select id="repetition-type">
-            <option value="none">Pas de répétition</option>
-            <option value="daily">Tous les jours</option>
-            <option value="weekly">Toutes les semaines</option>
-            <option value="monthly">Tous les mois</option>
-            <option value="yearly">Tous les ans</option>
-          </select>
+        <div class="form-actions">
+          <button type="button" id="delete-event" class="delete-btn" style="display: none;">Supprimer</button>
+          <div class="right-actions">
+            <button type="button" id="cancel-event">Annuler</button>
+            <button type="submit" id="save-event">Enregistrer</button>
+          </div>
         </div>
-      </div>
-      
-      <div class="form-actions">
-        <button type="button" id="delete-event" class="delete-btn" style="display: none;">Supprimer</button>
-        <div class="right-actions">
-          <button type="button" id="cancel-event">Annuler</button>
-          <button type="submit" id="save-event">Enregistrer</button>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
   <script src="assets/js/calendrier.js"></script>

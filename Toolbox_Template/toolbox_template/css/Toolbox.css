@@ -1,0 +1,231 @@
+/**
+ * Toolbox.css
+ * Styles génériques pour la Toolbox
+ * 
+ * Ce fichier contient tous les styles nécessaires pour l'interface de la Toolbox.
+ * Il est conçu pour être indépendant et ne pas affecter les styles de l'application hôte.
+ * 
+ * @author Manus
+ * @version 1.0.0
+ */
+
+/* Bouton Toolbox */
+.toolbox-btn {
+  padding: 8px 15px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.toolbox-btn:hover {
+  background-color: #0b7dda;
+}
+
+/* Modal Toolbox */
+.toolbox-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+}
+
+.toolbox-modal-content {
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 5px;
+  width: 80%;
+  max-width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: toolboxFadeIn 0.3s;
+}
+
+@keyframes toolboxFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toolbox-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.toolbox-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.toolbox-close {
+  font-size: 24px;
+  cursor: pointer;
+  color: #aaa;
+  transition: color 0.3s;
+}
+
+.toolbox-close:hover {
+  color: #333;
+}
+
+/* Liste des fonctionnalités */
+.toolbox-feature {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.toolbox-feature:hover {
+  background-color: #f9f9f9;
+}
+
+.toolbox-feature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.toolbox-feature-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.toolbox-feature-description {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Toggle Switch */
+.toolbox-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toolbox-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toolbox-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toolbox-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toolbox-slider {
+  background-color: #2196F3;
+}
+
+input:focus + .toolbox-slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .toolbox-slider:before {
+  transform: translateX(26px);
+}
+
+/* GIF Upload */
+.toolbox-feature-gif {
+  margin-top: 15px;
+}
+
+.toolbox-feature-gif img {
+  max-width: 100%;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+
+.toolbox-gif-upload {
+  text-align: center;
+  padding: 10px;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+}
+
+.toolbox-gif-upload label {
+  display: block;
+  cursor: pointer;
+  color: #2196F3;
+  margin-bottom: 5px;
+}
+
+.toolbox-gif-upload input[type="file"] {
+  display: none;
+}
+
+/* Éléments de fonctionnalités */
+.toolbox-feature-element {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toolbox-feature-element:hover {
+  background-color: #e0e0e0;
+}
+
+.toolbox-feature-element i {
+  margin-right: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .toolbox-modal-content {
+    width: 95%;
+    margin: 5% auto;
+  }
+  
+  .toolbox-feature-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .toolbox-switch {
+    margin-top: 10px;
+  }
+}

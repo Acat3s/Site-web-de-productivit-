@@ -1,0 +1,269 @@
+/* Styles pour le popup d'événement */
+.event-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.event-popup {
+  width: 90%;
+  max-width: 500px;
+  background-color: var(--calendar-background);
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  padding: 25px;
+  display: none;
+  z-index: 1001;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: popup-fade-in 0.3s ease-out;
+}
+
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -55%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.event-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--calendar-border);
+  padding-bottom: 15px;
+}
+
+.event-popup-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--calendar-primary);
+  margin: 0;
+}
+
+.close-popup {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: var(--calendar-primary-light);
+  color: var(--calendar-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.close-popup:hover {
+  background-color: var(--calendar-primary);
+  color: white;
+  transform: rotate(90deg);
+}
+
+/* Styles pour le formulaire */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--calendar-text);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--calendar-border);
+  border-radius: 8px;
+  background-color: var(--calendar-background);
+  color: var(--calendar-text);
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--calendar-primary);
+  box-shadow: 0 0 0 2px var(--calendar-primary-light);
+  outline: none;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* Sélecteur de couleur personnalisé */
+.color-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-preview {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--calendar-border);
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.color-preview:hover {
+  transform: scale(1.02);
+}
+
+.color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--calendar-primary);
+}
+
+.color-input {
+  margin-top: 10px;
+}
+
+/* Boutons d'action */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.delete-btn {
+  background-color: #ff4757;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+  background-color: #e71a2e;
+}
+
+.right-actions {
+  display: flex;
+  gap: 10px;
+}
+
+#cancel-event {
+  background-color: #f1f2f6;
+  color: #2f3542;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+#cancel-event:hover {
+  background-color: #dfe4ea;
+}
+
+#save-event {
+  background-color: var(--calendar-primary);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+#save-event:hover {
+  background-color: var(--calendar-primary-hover);
+}
+
+#save-event:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .event-popup {
+    width: 95%;
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 15px;
+  }
+  
+  .right-actions {
+    width: 100%;
+  }
+  
+  #cancel-event, #save-event {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .delete-btn {
+    width: 100%;
+  }
+}

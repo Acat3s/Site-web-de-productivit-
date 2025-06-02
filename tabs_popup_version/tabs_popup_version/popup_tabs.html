@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pop-up à Onglets - Version sans défilement</title>
+  <style>
+    :root {
+      --calendar-background: #ffffff;
+      --calendar-border: #e0e0e0;
+      --calendar-primary: #2ECC71;
+      --calendar-primary-light: #a8e6cf;
+      --calendar-primary-hover: #27ae60;
+      --calendar-text: #333333;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    [data-theme="dark"] {
+      --calendar-background: #333333;
+      --calendar-border: #555555;
+      --calendar-primary: #2ECC71;
+      --calendar-primary-light: #1a7a43;
+      --calendar-primary-hover: #27ae60;
+      --calendar-text: #f5f5f5;
+      background-color: #222222;
+      color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--calendar-primary);
+    }
+    
+    .test-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    button {
+      padding: 12px 20px;
+      background-color: var(--calendar-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    
+    button:hover {
+      background-color: var(--calendar-primary-hover);
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    .theme-toggle {
+      background-color: #f1f2f6;
+      color: #2f3542;
+    }
+    
+    .theme-toggle:hover {
+      background-color: #dfe4ea;
+    }
+    
+    .info {
+      background-color: var(--calendar-background);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info h2 {
+      color: var(--calendar-primary);
+      margin-top: 0;
+      border-bottom: 1px solid var(--calendar-border);
+      padding-bottom: 10px;
+    }
+    
+    /* Styles pour le popup d'événement - Version à onglets */
+    .event-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+    
+    .event-popup {
+      width: 90%;
+      max-width: 550px;
+      background-color: var(--calendar-background);
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      display: none;
+      z-index: 1001;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: popup-fade-in 0.3s ease-out;
+    }
+    
+    @keyframes popup-fade-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+    
+    .event-popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .event-popup-header h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--calendar-primary);
+      margin: 0;
+    }
+    
+    .close-popup {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      background-color: var(--calendar-primary-light);
+      color: var(--calendar-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+    
+    .close-popup:hover {
+      background-color: var(--calendar-primary);
+      color: white;
+      transform: rotate(90deg);
+    }
+    
+    /* Styles pour les onglets */
+    .tabs-container {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .tabs-header {
+      display: flex;
+      border-bottom: 1px solid var(--calendar-border);
+      margin-bottom: 20px;
+    }
+    
+    .tab-button {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-weight: 500;
+      color: var(--calendar-text);
+    }
+    
+    .tab-button:hover {
+      color: var(--calendar-primary);
+    }
+    
+    .tab-button.active {
+      color: var(--calendar-primary);
+      border-bottom-color: var(--calendar-primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fade-in 0.3s ease-out;
+    }
+    
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    /* Styles pour le formulaire */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--calendar-text);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--calendar-border);
+      border-radius: 8px;
+      background-color: var(--calendar-background);
+      color: var(--calendar-text);
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--calendar-primary);
+      box-shadow: 0 0 0 2px var(--calendar-primary-light);
+      outline: none;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+    
+    /* Toggle switch pour "Journée entière" */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-switch label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 34px;
+      cursor: pointer;
+      transition: .4s;
+    }
+    
+    .toggle-switch label:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .4s;
+    }
+    
+    .toggle-switch input:checked + label {
+      background-color: var(--calendar-primary);
+    }
+    
+    .toggle-switch input:checked + label:before {
+      transform: translateX(26px);
+    }
+    
+    /* Sélecteur de couleur */
+    .color-picker-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .color-preview {
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--calendar-border);
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .color-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    
+    .color-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px solid transparent;
+    }
+    
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+    
+    .color-option.selected {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px white, 0 0 0 4px var(--calendar-primary);
+    }
+    
+    /* Boutons d'action */
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      align-items: center;
+      border-top: 1px solid var(--calendar-border);
+      padding-top: 15px;
+    }
+    
+    .delete-btn {
+      background-color: #ff4757;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    .delete-btn:hover {
+      background-color: #e71a2e;
+    }
+    
+    .right-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    #cancel-event {
+      background-color: #f1f2f6;
+      color: #2f3542;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    #cancel-event:hover {
+      background-color: #dfe4ea;
+    }
+    
+    #save-event {
+      background-color: var(--calendar-primary);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    
+    #save-event:hover {
+      background-color: var(--calendar-primary-hover);
+    }
+    
+    #save-event:active {
+      transform: scale(0.98);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .event-popup {
+        width: 95%;
+        padding: 15px;
+      }
+      
+      .tabs-header {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 5px;
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .form-actions {
+        flex-direction: column-reverse;
+        gap: 15px;
+      }
+      
+      .right-actions {
+        width: 100%;
+      }
+      
+      #cancel-event, #save-event {
+        flex: 1;
+        text-align: center;
+      }
+      
+      .delete-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Version à Onglets du Pop-up</h1>
+    <p>Cette version utilise des onglets pour organiser les champs sans nécessiter de défilement.</p>
+    
+    <div class="test-buttons">
+      <button onclick="showPopup()">Afficher le Pop-up</button>
+      <button onclick="toggleDarkMode()" class="theme-toggle">Basculer Mode Sombre</button>
+    </div>
+    
+    <div class="info">
+      <h2>Caractéristiques</h2>
+      <ul>
+        <li>Interface divisée en onglets thématiques</li>
+        <li>Navigation intuitive entre les sections</li>
+        <li>Contenu organisé et accessible</li>
+        <li>Compatible avec tous les types d'écrans</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Pop-up d'ajout/édition d'événement -->
+  <div id="event-popup-overlay" class="event-popup-overlay"></div>
+  <div id="event-popup" class="event-popup">
+    <div class="event-popup-header">
+      <h2 id="popup-title">Ajouter un événement</h2>
+      <span class="close-popup">&times;</span>
+    </div>
+    
+    <div class="tabs-container">
+      <div class="tabs-header">
+        <div class="tab-button active" data-tab="general">Général</div>
+        <div class="tab-button" data-tab="datetime">Date & Heure</div>
+        <div class="tab-button" data-tab="details">Détails</div>
+        <div class="tab-button" data-tab="options">Options</div>
+      </div>
+      
+      <form id="event-form">
+        <div class="tab-content active" id="general-tab">
+          <div class="form-group">
+            <label for="event-title">Titre</label>
+            <input type="text" id="event-title" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="event-location">Lieu</label>
+            <input type="text" id="event-location">
+          </div>
+          
+          <div class="form-group">
+            <label for="event-description">Description</label>
+            <textarea id="event-description" rows="3"></textarea>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="datetime-tab">
+          <div class="form-group">
+            <label for="event-date">Date</label>
+            <input type="date" id="event-date" required>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="event-start-time">Heure de début</label>
+              <input type="time" id="event-start-time">
+            </div>
+            
+            <div class="form-group">
+              <label for="event-end-time">Heure de fin</label>
+              <input type="time" id="event-end-time">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Journée entière</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="all-day-event">
+              <label for="all-day-event"></label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="details-tab">
+          <div class="form-group">
+            <label for="event-color">Couleur</label>
+            <div class="color-picker-container">
+              <div id="color-preview" class="color-preview" style="background-color: #4CAF50;">
+                Aperçu de la couleur
+              </div>
+              <div class="color-palette">
+                <div class="color-option selected" data-color="#4CAF50" style="background-color: #4CAF50;"></div>
+                <div class="color-option" data-color="#2196F3" style="background-color: #2196F3;"></div>
+                <div class="color-option" data-color="#FF9800" style="background-color: #FF9800;"></div>
+                <div class="color-option" data-color="#9C27B0" style="background-color: #9C27B0;"></div>
+                <div class="color-option" data-color="#F44336" style="background-color: #F44336;"></div>
+                <div class="color-option" data-color="#009688" style="background-color: #009688;"></div>
+                <div class="color-option" data-color="#673AB7" style="background-color: #673AB7;"></div>
+                <div class="color-option" data-color="#3F51B5" style="background-color: #3F51B5;"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="event-participants">Participants</label>
+            <input type="text" id="event-participants" placeholder="Séparez les emails par des virgules">
+          </div>
+        </div>
+        
+        <div class="tab-content" id="options-tab">
+          <div class="form-group">
+            <label>Rappel</label>
+            <div class="reminder-selector">
+              <select id="reminder-time">
+                <option value="0">Pas de rappel</option>
+                <option value="5">5 minutes avant</option>
+                <option value="15">15 minutes avant</option>
+                <option value="30">30 minutes avant</option>
+                <option value="60">1 heure avant</option>
+                <option value="1440">1 jour avant</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Répétition</label>
+            <div class="repetition-selector">
+              <select id="repetition-type">
+                <option value="none">Pas de répétition</option>
+                <option value="daily">Tous les jours</option>
+                <option value="weekly">Toutes les semaines</option>
+                <option value="monthly">Tous les mois</option>
+                <option value="yearly">Tous les ans</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Visibilité</label>
+            <div class="visibility-selector">
+              <select id="event-visibility">
+                <option value="public">Public</option>
+                <option value="private">Privé</option>
+                <option value="confidential">Confidentiel</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" id="delete-event" class="delete-btn">Supprimer</button>
+          <div class="right-actions">
+            <button type="button" id="cancel-event">Annuler</button>
+            <button type="submit" id="save-event">Enregistrer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    // Fonction pour afficher le pop-up
+    function showPopup() {
+      document.getElementById('event-popup-overlay').style.display = 'block';
+      document.getElementById('event-popup').style.display = 'block';
+    }
+    
+    // Fonction pour fermer le pop-up
+    function closePopup() {
+      document.getElementById('event-popup-overlay').style.display = 'none';
+      document.getElementById('event-popup').style.display = 'none';
+    }
+    
+    // Fonction pour basculer le mode sombre
+    function toggleDarkMode() {
+      document.body.setAttribute('data-theme', 
+        document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+    
+    // Initialiser les gestionnaires d'événements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Gestionnaire pour le bouton de fermeture
+      document.querySelector('.close-popup').addEventListener('click', closePopup);
+      
+      // Gestionnaire pour le bouton Annuler
+      document.getElementById('cancel-event').addEventListener('click', closePopup);
+      
+      // Gestionnaire pour l'overlay
+      document.getElementById('event-popup-overlay').addEventListener('click', closePopup);
+      
+      // Empêcher la propagation des clics dans le pop-up
+      document.getElementById('event-popup').addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      
+      // Gestionnaire pour le formulaire
+      document.getElementById('event-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Événement enregistré avec succès !');
+        closePopup();
+      });
+      
+      // Gestionnaire pour les options de couleur
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', function() {
+          // Retirer la classe selected de toutes les options
+          document.querySelectorAll('.color-option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // Ajouter la classe selected à l'option cliquée
+          this.classList.add('selected');
+          
+          // Mettre à jour la couleur de l'aperçu
+          const color = this.getAttribute('data-color');
+          document.getElementById('color-preview').style.backgroundColor = color;
+        });
+      });
+      
+      // Gestionnaire pour les onglets
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function() {
+          // Retirer la classe active de tous les boutons et contenus
+          document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          
+          // Ajouter la classe active au bouton cliqué
+          this.classList.add('active');
+          
+          // Afficher le contenu correspondant
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId + '-tab').classList.add('active');
+        });
+      });
+      
+      // Gestionnaire pour le switch "Journée entière"
+      document.getElementById('all-day-event').addEventListener('change', function() {
+        const startTime = document.getElementById('event-start-time');
+        const endTime = document.getElementById('event-end-time');
+        
+        if (this.checked) {
+          startTime.disabled = true;
+          endTime.disabled = true;
+        } else {
+          startTime.disabled = false;
+          endTime.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
