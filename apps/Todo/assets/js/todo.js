@@ -1086,4 +1086,39 @@ document.addEventListener('DOMContentLoaded', () => {
   // Exposer certaines fonctions globalement pour les tests
   window.loadTasksFromFirestore = loadTasksFromFirestore;
   window.updateAllViews = updateAllViews;
+
+  // Fonction utilitaire pour afficher une notification
+  function showNotification(message, type = "info") {
+    // type: "success", "warning", "error", "info"
+    const container = document.querySelector('.notification-container');
+    if (!container) return;
+
+    // Nettoyer les anciennes notifications
+    container.innerHTML = "";
+
+    // Créer la notification
+    const notif = document.createElement('div');
+    notif.className = `notification ${type}`;
+    notif.textContent = message;
+
+    // Style basique (tu peux améliorer avec du CSS)
+    notif.style.padding = "12px 20px";
+    notif.style.margin = "10px auto";
+    notif.style.borderRadius = "8px";
+    notif.style.maxWidth = "400px";
+    notif.style.textAlign = "center";
+    notif.style.fontWeight = "bold";
+    notif.style.background = type === "success" ? "#00b894" :
+                            type === "warning" ? "#fdcb6e" :
+                            type === "error" ? "#e17055" : "#636e72";
+    notif.style.color = "#fff";
+    notif.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+
+    container.appendChild(notif);
+
+    // Disparition automatique
+    setTimeout(() => {
+      notif.remove();
+    }, 3000);
+  }
 });
