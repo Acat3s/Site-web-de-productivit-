@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
       newTask.id = generateId();
       
       // Mettre à jour la date pour aujourd'hui
-      newTask.date = today.toISOString();
+      newTask.date = today.toISOString().split('T')[0];
       
       // Réinitialiser le statut (marquer comme non complétée)
       newTask.completed = false;
