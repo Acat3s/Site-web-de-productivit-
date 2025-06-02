@@ -4,7 +4,7 @@ class TodoToolbox extends Toolbox {
   constructor() {
     super({
       appName: 'Todo',
-      buttonContainer: '.todo-header', // À adapter selon ton HTML
+      buttonContainer: '.header-actions', // Cible le conteneur à droite du header
       features: [] // On charge depuis le JSON
     });
     this.loadFeaturesFromJSON();
