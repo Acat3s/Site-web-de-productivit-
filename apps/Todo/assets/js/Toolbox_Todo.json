@@ -1,25 +1,7 @@
 [
   {
-    "name": "Export PDF",
-    "description": "Permet d'exporter la liste des tâches au format PDF.",
-    "enabled": false,
-    "gif": ""
-  },
-  {
-    "name": "Statistiques par catégorie",
-    "description": "Affiche un graphique de répartition des tâches par catégorie.",
-    "enabled": false,
-    "gif": ""
-  },
-  {
-    "name": "Tags personnalisés",
-    "description": "Permet d'ajouter et de filtrer les tâches par tags.",
-    "enabled": false,
-    "gif": ""
-  },
-  {
-    "name": "Mode Pomodoro",
-    "description": "Ajoute un minuteur Pomodoro pour la gestion du temps.",
+    "name": "Dupliquer tâches d'hier",
+    "description": "Active un bouton pour dupliquer automatiquement les tâches de la veille vers aujourd'hui.",
     "enabled": false,
     "gif": ""
   }

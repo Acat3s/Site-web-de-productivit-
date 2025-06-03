@@ -36,9 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialiser le modal d'édition
   initEditModal();
   
-  // Initialiser le bouton de duplication des tâches d'hier
-  initDuplicateYesterdayButton();
-  
   // Initialiser la réinitialisation des tâches quotidiennes à minuit
   resetDailyTasksAtMidnight();
   
@@ -288,74 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
-
-  // Initialiser le bouton de duplication des tâches d'hier
-  function initDuplicateYesterdayButton() {
-    const duplicateButton = document.getElementById('duplicate-yesterday-tasks');
-    if (duplicateButton) {
-      duplicateButton.addEventListener('click', duplicateYesterdayTasks);
-    }
-  }
-  
-  // Dupliquer les tâches d'hier pour aujourd'hui
-  function duplicateYesterdayTasks() {
-    console.log("Duplication des tâches d'hier...");
-    
-    // Obtenir la date d'hier
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-    
-    // Obtenir la date d'aujourd'hui
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Filtrer les tâches d'hier
-    const yesterdayTasks = tasks.daily.filter(task => {
-      const taskDate = new Date(task.date);
-      return isSameDay(taskDate, yesterday);
-    });
-    
-    if (yesterdayTasks.length === 0) {
-      // Afficher une notification si aucune tâche n'a été trouvée pour hier
-      showNotification("Aucune tâche trouvée pour hier", "warning");
-      return;
-    }
-    
-    // Dupliquer les tâches d'hier pour aujourd'hui
-    const duplicatedTasks = yesterdayTasks.map(task => {
-      // Créer une copie de la tâche
-      const newTask = { ...task };
-      
-      // Générer un nouvel ID
-      newTask.id = generateId();
-      
-      // Mettre à jour la date pour aujourd'hui
-      newTask.date = today.toISOString().split('T')[0];
-      
-      // Réinitialiser le statut (marquer comme non complétée)
-      newTask.completed = false;
-      
-      // Réinitialiser le compteur de répétition si nécessaire
-      if (newTask.repetition && newTask.repetition.total > 0) {
-        newTask.repetition.current = 0;
-      }
-      
-      return newTask;
-    });
-    
-    // Ajouter les tâches dupliquées à la liste des tâches quotidiennes
-    tasks.daily = [...tasks.daily, ...duplicatedTasks];
-    
-    // Sauvegarder les tâches
-    saveTasksToLocalStorage();
-    
-    // Mettre à jour l'affichage
-    updateDailyDisplay();
-    
-    // Afficher une notification de succès
-    showNotification(`${duplicatedTasks.length} tâche(s) dupliquée(s) avec succès`, "success");
-  }
   
   // ===== FONCTIONS DE NAVIGATION =====
   
@@ -472,6 +401,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return date1.getFullYear() === date2.getFullYear() &&
            date1.getMonth() === date2.getMonth() &&
            date1.getDate() === date2.getDate();
+  }
+
+  // Fonction pour obtenir la date "YYYY-MM-DD" locale
+  function getLocalDateString(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // Les mois sont 0-indexés
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // ===== GESTION DES TÂCHES =====
@@ -1057,7 +994,17 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Sauvegarder les tâches dans le localStorage
   function saveTasksToLocalStorage() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    // Sauvegarder chaque catégorie séparément pour correspondre au chargement
+    localStorage.setItem('dailyTasks', JSON.stringify(tasks.daily));
+    localStorage.setItem('weeklyTasks', JSON.stringify(tasks.weekly));
+    localStorage.setItem('punctualTasks', JSON.stringify(tasks.punctual));
+    localStorage.setItem('generalTasks', JSON.stringify(tasks.general));
+    console.log('Tâches sauvegardées dans localStorage:', {
+      daily: tasks.daily.length,
+      weekly: tasks.weekly.length,
+      punctual: tasks.punctual.length,
+      general: tasks.general.length
+    });
   }
   
   // Réinitialiser les tâches quotidiennes à minuit
@@ -1086,6 +1033,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Exposer certaines fonctions globalement pour les tests
   window.loadTasksFromFirestore = loadTasksFromFirestore;
   window.updateAllViews = updateAllViews;
+
+  // Exposer les fonctions et variables pour la Toolbox
+  window.todoApp = {
+    get currentDailyDate() { return currentDailyDate; },
+    get tasks() { return tasks; },
+    showNotification,
+    updateDailyDisplay,
+    loadDailyTasks,
+    saveTasksToLocalStorage,
+    getLocalDateString,
+    isSameDay,
+    generateId,
+    // TodoFirebaseManager est déjà global
+  };
 
   // Fonction utilitaire pour afficher une notification
   function showNotification(message, type = "info") {

@@ -2,7 +2,7 @@
   {
     "name": "Bouton Aujourd'hui",
     "description": "Permet d'afficher ou masquer le bouton Aujourd'hui.",
-    "enabled": true,
+    "enabled": false,
     "gif": ""
   }
 ] 
