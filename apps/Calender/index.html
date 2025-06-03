@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="assets/css/calendrier_papier.css">
   <link rel="stylesheet" href="assets/css/event_popup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="../../Toolbox_Template/toolbox_template/css/Toolbox.css">
 </head>
 <body>
   <div class="app-container">
@@ -19,9 +20,11 @@
           <i class="fas fa-arrow-left"></i> Menu
         </a>
         <h1 class="title">Calendrier</h1>
-        <button class="theme-toggle" id="theme-toggle">
-          <i id="theme-icon" class="fas fa-moon"></i>
-        </button>
+        <div class="header-actions">
+          <button class="theme-toggle" id="theme-toggle">
+            <i id="theme-icon" class="fas fa-moon"></i>
+          </button>
+        </div>
       </div>
       <div class="view-selector">
         <button class="view-btn" data-view="day">Vue Journalière</button>
@@ -288,5 +291,8 @@
   <script src="assets/js/calendrier.js"></script>
   <!-- Script du popup moderne -->
   <script src="assets/js/event_popup.js"></script>
+  <script src="../../Toolbox_Template/toolbox_template/js/Toolbox.js"></script>
+  <!-- FIRST_EDIT: charger Toolbox_Calendrier.js comme module ES6 -->
+  <script type="module" src="assets/js/Toolbox_Calendrier.js"></script>
 </body>
 </html>

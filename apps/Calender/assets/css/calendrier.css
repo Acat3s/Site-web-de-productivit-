@@ -690,3 +690,35 @@
 .toggle-switch label:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; }
 .toggle-switch input:checked + label { background-color: var(--calendar-primary); }
 .toggle-switch input:checked + label:before { transform: translateX(26px); }
+
+/* Timeline background grid: dessiner une ligne à chaque heure */
+.week-grid, .day-timeline .day-content {
+  background-image: linear-gradient(to bottom, var(--calendar-border) 1px, transparent 0);
+  background-size: 100% 60px;
+  background-position: 0 0;
+}
+
+/* Masquer les marqueurs absolus existants */
+.hour-line, .quarter-line {
+  display: none !important;
+}
+
+/* Aligner les labels d'heure exactement sur la ligne */
+.time-slot, .hour-label {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-left: 0px;
+  padding-top: 10;
+  line-height: 1;
+  position: relative;
+  top: -10px;
+}
+
+/* FIRST_EDIT: Add flex layout and spacing to the view header containing navigation and the today button */
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
